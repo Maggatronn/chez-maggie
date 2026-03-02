@@ -1,0 +1,2046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maggie Hughes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;700&family=Space+Mono&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.min.js"></script>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #F8F6F0; font-family: 'Space Grotesk', system-ui, sans-serif; min-height: 100vh; }
+
+    header { 
+      display: flex; 
+      align-items: flex-start; 
+      padding: 52px 40px 40px; 
+      max-width: 1100px; 
+      margin: 0 auto; 
+      box-sizing: border-box;
+    }
+    .header-text { flex-shrink: 0; padding-right: 52px; position: relative; }
+
+    h1 { font-size: clamp(2.4rem, 5vw, 4rem); font-weight: 700; color: #1a1a1a; letter-spacing: -0.03em; line-height: 1; margin-bottom: 15px; }
+    .tagline { margin-top: 10px; font-family: 'Space Mono', monospace; font-size: 0.78rem; color: #999; }
+    .header-about { 
+      font-size: 0.9rem; 
+      line-height: 1.4; 
+      color: #666; 
+      margin: 0; 
+      max-width: 500px;
+    }
+    nav { margin-top: 22px; display: flex; gap: 28px; }
+    nav a { font-family: 'Space Mono', monospace; font-size: 0.75rem; color: #555; text-decoration: none; border-bottom: 1px solid #ccc; padding-bottom: 2px; transition: color .15s, border-color .15s; }
+    nav a:hover { color: #F52D34; border-color: #F52D34; }
+
+    /* Mode toggle */
+    .blob-controls {
+      margin-top: 16px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .blob-controls label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      color: #777;
+      margin-right: 4px;
+    }
+
+    .mode-toggle {
+      display: flex;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .mode-toggle button {
+      background: #f8f6f0;
+      border: none;
+      padding: 4px 8px;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .mode-toggle button:hover {
+      background: #ede8e0;
+    }
+
+    .mode-toggle button.active {
+      background: #F52D34;
+      color: white;
+    }
+
+    /* Nest shape */
+    .nest {
+      position: absolute;
+      right: -30px;
+      top: 25px;
+      width: 40px;
+      height: 30px;
+      opacity: 0.3;
+      transition: opacity 0.3s;
+      z-index: 300; /* Above header (200) and blob (100) */
+    }
+
+    .nest.active {
+      opacity: 1.0; /* Full opacity when active */
+    }
+    
+    .nest:not(.active) {
+      opacity: 1.0; /* Always visible, not transparent */
+    }
+
+    .nest svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Single full-page canvas */
+    #blob-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100%; /* Match document height */
+      pointer-events: none;
+      z-index: 100; /* Behind nest but above page content */
+    }
+    
+    /* Home area background */
+    .home-area {
+      position: absolute;
+      background: rgba(26, 26, 26, 0.08); /* More visible for debugging */
+      border-radius: 8px;
+      z-index: 50; /* Behind blob canvas */
+      pointer-events: none;
+      opacity: 1; /* Always visible */
+      transition: opacity 0.3s ease;
+    }
+    
+    /* Floating mode controls */
+    .floating-controls {
+      position: absolute;
+      z-index: 200; /* Above home area and blob */
+      pointer-events: auto;
+    }
+    
+    .floating-controls .mode-toggle {
+      display: flex;
+      gap: 4px;
+    }
+    
+    .floating-controls button {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      padding: 4px 8px;
+      border: none;
+      background: rgba(248, 246, 240, 0.8);
+      color: #888;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 400;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .floating-controls button:hover {
+      background: rgba(248, 246, 240, 0.95);
+      color: #555;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    }
+    
+    .floating-controls button.active {
+      background: rgba(245, 45, 52, 0.15);
+      color: #F52D34;
+      box-shadow: 0 2px 4px rgba(245, 45, 52, 0.2);
+    }
+    
+    #blob-container { flex: 1; overflow: hidden; position: relative; }
+    
+    /* Main content styling */
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 40px;
+      line-height: 1.5;
+      color: #1a1a1a;
+    }
+    
+    .projects {
+      margin-bottom: 40px;
+    }
+    
+    .projects h2 {
+      font-size: 1.2em;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #1a1a1a;
+    }
+    
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    
+    .project {
+      padding: 20px;
+      background: rgba(26, 26, 26, 0.02);
+      border-radius: 8px;
+      border: 1px solid rgba(26, 26, 26, 0.08);
+    }
+    
+    .project h3 {
+      font-size: 1.1em;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #1a1a1a;
+    }
+    
+    .project-meta {
+      font-size: 0.8em;
+      color: #666;
+      margin-bottom: 10px;
+      font-style: italic;
+    }
+    
+    .project p:not(.project-meta) {
+      font-size: 0.9em;
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+    
+    .project-links {
+      margin-top: 8px;
+      font-size: 0.8em;
+    }
+    
+    .project-links a {
+      color: #666;
+      text-decoration: none;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 1px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    
+    .project-links a:hover {
+      color: #F52D34;
+      border-color: #F52D34;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      main {
+        padding: 40px 20px;
+      }
+      
+      .projects h2 {
+        font-size: 1.2em;
+      }
+      
+      .project h3 {
+        font-size: 1.1em;
+      }
+      
+      header {
+        padding: 40px 20px 30px;
+      }
+      
+      /* Mobile: Hide home mode - only nest and roam */
+      #home-btn {
+        display: none;
+      }
+      
+      .home-area {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-text" id="headerText">
+      <h1>Maggie Hughes</h1>
+      <p class="header-about">
+        PhD candidate in Media Arts and Sciences at MIT researching civic technology, participatory design, 
+        and constructive communication. I create sociotechnical systems that support meaningful civic 
+        engagement and community organizing, combining ethnographic research, co-design practices, and 
+        computational methods to amplify community voices in democratic processes.
+      </p>
+      
+      <!-- Nest shape -->
+      <div class="nest" id="nest-shape">
+        <svg viewBox="0 0 40 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Nest bowl shape -->
+          <path d="M5 20 Q5 25 10 25 L30 25 Q35 25 35 20 L35 15 Q35 10 30 12 L10 12 Q5 10 5 15 Z" 
+                fill="#1a1a1a" stroke="#333" stroke-width="1"/>
+          <!-- Nest texture lines -->
+          <path d="M8 15 Q12 17 16 15 Q20 13 24 15 Q28 17 32 15" 
+                stroke="#333" stroke-width="0.8" fill="none"/>
+          <path d="M9 18 Q13 20 17 18 Q21 16 25 18 Q29 20 31 18" 
+                stroke="#333" stroke-width="0.8" fill="none"/>
+          <path d="M10 21 Q14 22 18 21 Q22 20 26 21 Q30 22 30 21" 
+                stroke="#333" stroke-width="0.8" fill="none"/>
+        </svg>
+      </div>
+    </div>
+    <div id="blob-container"></div>
+  </header>
+
+  <!-- Home area background -->
+  <div id="home-area" class="home-area"></div>
+  
+  <!-- Floating mode controls -->
+  <div class="floating-controls">
+    <div class="mode-toggle">
+      <button id="roam-btn">roam</button>
+      <button id="home-btn">home</button>
+      <button id="nest-btn" class="active">nest</button>
+    </div>
+  </div>
+  
+  <!-- Canvas will be created by p5.js -->
+  
+  <!-- Main content -->
+  <main>
+    <section class="projects">
+      <!-- <h2>Selected Work</h2> -->
+      
+      <div class="projects-grid">
+        <div class="project">
+        <h3>Voice to Vision</h3>
+        <p class="project-meta">MIT Media Lab × NYC Department of City Planning</p>
+        <p>
+          A sociotechnical system for transparent civic decision-making that bridges community voices 
+          and urban planning processes. Through ethnographic work and co-design with community members 
+          and planners, we developed data collection and analysis tools that make neighborhood planning 
+          more participatory and accessible.
+        </p>
+        <div class="project-links">
+          <a href="https://arxiv.org/abs/2505.14853" target="_blank">Voice to Vision: Enhancing Civic Decision-Making (arXiv 2025)</a> • 
+          <a href="https://v2v-jamaicaplan.ccc-mit.org/" target="_blank">Jamaica Plan Demo</a> • 
+          <a href="https://v2v-white-plains-road-plan.ccc-mit.org/?section=intro" target="_blank">White Plains Road Demo</a>
+        </div>
+      </div>
+      
+      <div class="project">
+        <h3>Evidence-Based Organizing</h3>
+        <p class="project-meta">Harvard Kennedy School × Carolina Federation</p>
+        <p>
+          Research and design work exploring how community organizers can use data and technology 
+          while staying true to their values-driven approach. Through qualitative fieldwork with 
+          organizations like Down Home Carolina, we developed interactive tools to visualize 
+          organizer networks and relationship-building processes.
+        </p>
+        <div class="project-links">
+          <a href="#" target="_blank">From Alinsky to Zoom: Understanding Relational Organizing (CSCW 2021)</a>
+        </div>
+      </div>
+      
+      <div class="project">
+        <h3>Conversation Dynamics</h3>
+        <p class="project-meta">MIT Media Lab × Democracy Next</p>
+        <p>
+          Computational analysis of constructive communication patterns in civic dialogue. 
+          Developed metrics and interactive visualization tools to help facilitators and participants 
+          understand conversation dynamics, identify constructive behaviors, and learn from successful 
+          dialogue patterns.
+        </p>
+        <div class="project-links">
+          <a href="#" target="_blank">Computational Analysis of Conversation Dynamics (EMNLP 2025)</a> • 
+          <a href="#" target="_blank">In Pursuit of Constructive Communication (DIS 2024)</a> • 
+          <a href="https://maggatronn.github.io/relational_conversation_dynamics/" target="_blank">Interactive Demo</a>
+        </div>
+      </div>
+      
+      <div class="project">
+        <h3>Civic Tech Interoperability</h3>
+        <p class="project-meta">Metagov Research Network</p>
+        <p>
+          Leading efforts to create interoperability standards across civic technology platforms. 
+          Through collaborative ontology mapping with civic technologists and researchers, we're 
+          building connectors between different tools to support more ecosystem-based approaches 
+          to democratic participation.
+        </p>
+        <div class="project-links">
+          <a href="#" target="_blank">Towards Interoperability: Pursuing an ontology for data exchange (Aarhus 2025)</a>
+        </div>
+      </div>
+      
+      <div class="project">
+        <h3>Keeper</h3>
+        <p class="project-meta">MIT Media Lab × Unity Circles</p>
+        <p>
+          A synchronous online conversation environment informed by in-person facilitation practices. 
+          Ethnographically studied facilitation and community building mechanisms to design a virtual 
+          communication platform that scaffolds constructive dialogue in online spaces.
+        </p>
+        <div class="project-links">
+          <a href="#" target="_blank">Keeper: A synchronous online conversation environment (CHI 2021)</a> • 
+          <a href="#" target="_blank">CSCW 2020</a>
+        </div>
+      </div>
+      
+      <div class="project">
+        <h3>Collective Echos</h3>
+        <p class="project-meta">Ars Electronica 2023 × Spatial Audio Installation</p>
+        <p>
+          An embodied, spatial audio experience that makes tangible a living library of human experiences. 
+          Combining ancient dialogue wisdom with AI-supported technology, this installation creates a 
+          pro-social communication space where participants maintain agency over their voice while exploring 
+          underheard stories through interactive visualizations and immersive audio.
+        </p>
+        <div class="project-links">
+          <a href="#" target="_blank">Ars Electronica 2023</a>
+        </div>
+      </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+  // Updated mouse interaction system v2.0
+  new p5(function(s) {
+
+    const N         = 35;     // balanced particle count for performance
+    const RADIUS    = 6;      // smaller particles
+    const MIN_STEP_SIZE = 35;  // minimum step distance (increased)
+    const MAX_STEP_SIZE = 80;  // maximum step distance (increased)
+    const MIN_STEP_TIME = 20;  // minimum frames between steps (faster)
+    const MAX_STEP_TIME = 50;  // maximum frames between steps (faster)
+    const MARGIN    = 80;
+
+    let leader = { x: 0, y: 0, targetX: 0, targetY: 0 };
+    let dirX   = 1;
+    let dirY   = 0;
+    let pause  = 0;
+    let ground = 0;
+    let parts  = [];
+    let stepTimer = 0;
+    let nextStepSize = 0;
+    let jellyfishPhase = 0;  // for gentle pulsing motion
+    
+    // Chasing mode for floating particles
+    let chasingMode = false;
+    let chasingModeTimer = 0;
+    let nextChaseIn = s.random(240, 480); // 4-8 seconds at 60fps
+    let floatingParticles = [];
+    const CHASE_DISTANCE = 300; // pixels - start chasing when particle is this close
+    const MAX_FLOATING_PARTICLES = 4;
+    
+    // Chasing system
+    let targetParticle = null; // which floating particle we're targeting
+    
+    // Central attractor that particles follow
+    let attractor = { x: 0, y: 0, targetX: 0, targetY: 0 };
+    
+    // Eyes
+    let leftEye = { x: 0, y: 0 };
+    let rightEye = { x: 0, y: 0 };
+    const EYE_SIZE = 3;  // base eye size
+    const EYE_SEPARATION = RADIUS;
+    
+    // Mode system
+    let currentMode = 'nest'; // start sleeping in nest
+    let sleepPhase = 0;
+    let modeTransition = { active: false, timer: 0, targetMode: null };
+    
+    // Mobile detection
+    function isMobile() {
+      return window.innerWidth <= 768;
+    }
+    
+    // Scroll handling
+    let isScrolling = false;
+    let scrollTimer = 0;
+    let scrollPauseTime = 30; // frames to pause after scroll stops
+    let zParticles = [];
+    let breathingPhase = 0;
+    
+    // Blinking system
+    let isBlinking = false;
+    let blinkTimer = 0;
+    let nextBlinkIn = s.random(120, 300); // 2-5 seconds
+    let blinkDuration = 8; // frames for a blink
+    let wakingUpBlinks = 0; // counter for wake-up blinks
+    let lookingAtUser = false;
+    let lookTimer = 0;
+    let nextLookIn = s.random(600, 1200); // 10-20 seconds
+    
+    // Door position for pathfinding
+    let doorPosition = { x: 0, y: 0 };
+    
+    // Wake-up sequence
+    let wakeUpTimer = 180; // 3 seconds of sleeping before waking up
+    let isWakingUp = false;
+    let wakeUpSequence = { active: false, phase: 'sleeping', timer: 0, blinksLeft: 0 };
+
+    s.setup = function () {
+      // Create canvas that matches document height
+      const documentHeight = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+      s.createCanvas(window.innerWidth, documentHeight);
+      s.canvas.id = 'blob-canvas';
+      s.canvas.style.position = 'absolute';
+      s.canvas.style.top = '0';
+      s.canvas.style.left = '0';
+      s.canvas.style.pointerEvents = 'none';
+      s.canvas.style.zIndex = '100'; // Below header (200) but above home area (50)
+      document.body.appendChild(s.canvas);
+      s.noStroke();
+
+      ground = window.innerHeight - RADIUS - 20;
+      
+      // Start in the nest (sleeping) - use same positioning as nest mode
+      const headerRect = document.getElementById('headerText').getBoundingClientRect();
+      const nestElement = document.getElementById('nest-shape');
+      const nestRect = nestElement.getBoundingClientRect();
+      
+      // Add scroll offset to get page coordinates
+      const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+      
+      // Position blob in nest (same as setMode('nest'))
+      leader.x = nestRect.left + nestRect.width / 2;
+      leader.y = nestRect.top + scrollY + nestRect.height * 0.2; // slightly higher
+      leader.targetX = leader.x;
+      leader.targetY = leader.y;
+      
+      // Make nest active since we're starting there
+      nestElement.classList.add('active');
+      
+      // Initialize attractor
+      attractor.x = leader.x;
+      attractor.y = leader.y;
+      attractor.targetX = leader.x;
+      attractor.targetY = leader.y;
+      
+      // Set initial pause and step timers for sleeping
+      pause = 999999;
+      stepTimer = 999999;
+      
+      // Initialize first step
+      nextStepSize = s.random(MIN_STEP_SIZE, MAX_STEP_SIZE);
+      stepTimer = s.random(MIN_STEP_TIME, MAX_STEP_TIME);
+      
+      // Random initial direction
+      const angle = s.random(0, Math.PI * 2);
+      dirX = Math.cos(angle);
+      dirY = Math.sin(angle);
+      
+      // Initialize home area position once
+      if (!isMobile()) {
+        setHomeAreaPosition();
+      }
+      
+      // Initialize eyes
+      leftEye.x = attractor.x - EYE_SEPARATION * 0.5;
+      leftEye.y = attractor.y - RADIUS * 0.5;
+      rightEye.x = attractor.x + EYE_SEPARATION * 0.5;
+      rightEye.y = attractor.y - RADIUS * 0.5;
+      
+      // Setup mode toggle buttons
+      document.getElementById('roam-btn').onclick = () => setMode('roam');
+      document.getElementById('home-btn').onclick = () => setMode('home');
+      document.getElementById('nest-btn').onclick = () => setMode('nest');
+      
+      // Initialize floating particles system - spawn a few particles to start
+      spawnFloatingParticle();
+      spawnFloatingParticle();
+      spawnFloatingParticle();
+      
+      // Track scrolling to pause blob movement
+      let scrollTimeout;
+      document.addEventListener('scroll', () => {
+        isScrolling = true;
+        scrollTimer = scrollPauseTime;
+        
+        // Clear existing timeout
+        clearTimeout(scrollTimeout);
+        
+        // Set timeout to detect when scrolling stops
+        scrollTimeout = setTimeout(() => {
+          isScrolling = false;
+        }, 150); // 150ms after scroll stops
+      });
+
+      // Create particles in a simple blob distribution
+      for (let i = 0; i < N; i++) {
+        const angle = (i / N) * Math.PI * 2;
+        const ring = Math.floor(i / (N / 4));
+        const radius = RADIUS * (0.8 + ring * 0.3);
+        
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle) * radius * 0.5;
+        
+        parts.push({
+          x:        leader.x + x,
+          y:        leader.y + y,
+          lerpT:    0.08,
+          baseOffX: x,
+          baseOffY: y,
+          r:        RADIUS * 0.8,
+          ring:     ring,
+          angle:    angle,
+        });
+      }
+    };
+
+    // Spawn a floating particle friend with personality
+    function spawnFloatingParticle() {
+      if (floatingParticles.length >= MAX_FLOATING_PARTICLES) return;
+      
+      // Use full page bounds in home mode, restricted bounds in other modes
+      let bounds;
+      if (currentMode === 'home') {
+        bounds = {
+          left: 60,
+          right: window.innerWidth - 60,
+          top: 60,
+          bottom: window.innerHeight - 60
+        };
+      } else {
+        bounds = getBoundaries();
+      }
+      // Weighted personality selection - mostly positive interactions
+      const personalityWeights = [
+        { type: 'playful', weight: 0.35 },
+        { type: 'friendly', weight: 0.35 },
+        { type: 'curious', weight: 0.25 },
+        { type: 'shy', weight: 0.05 }  // very few shy particles
+      ];
+      
+      const rand = s.random();
+      let cumulative = 0;
+      let personality = 'friendly'; // default
+      
+      for (const p of personalityWeights) {
+        cumulative += p.weight;
+        if (rand < cumulative) {
+          personality = p.type;
+          break;
+        }
+      }
+      
+      const particle = {
+        x: s.random(bounds.left + 50, bounds.right - 50),
+        y: s.random(bounds.top + 50, bounds.bottom - 50),
+        vx: s.random(-0.5, 0.5),
+        vy: s.random(-0.5, 0.5),
+        size: s.random(8, 15),
+        color: s.random(['#FFD700', '#32CD32', '#FF6347', '#1E90FF', '#FF69B4', '#00CED1', '#9370DB']), // more vibrant firefly colors
+        life: 1.0,
+        maxLife: s.random(800, 1600), // longer life for more friendship time
+        age: 0,
+        wobble: s.random(0, Math.PI * 2),
+        personality: personality,
+        moodTimer: 0,
+        currentMood: 'neutral', // neutral, approaching, playing, following
+        orbitAngle: s.random(0, Math.PI * 2), // for orbital play
+        lastInteraction: 0 // frames since last blob interaction
+      };
+      
+      floatingParticles.push(particle);
+      console.log('Spawned', personality, 'particle friend at:', particle.x, particle.y);
+    }
+    
+    // Update floating particles
+    function updateFloatingParticles() {
+      const bounds = getBoundaries();
+      
+      for (let i = floatingParticles.length - 1; i >= 0; i--) {
+        const p = floatingParticles[i];
+        
+        // Age the particle
+        p.age++;
+        p.life = 1 - (p.age / p.maxLife);
+        
+        // Remove if too old
+        if (p.life <= 0) {
+          floatingParticles.splice(i, 1);
+          continue;
+        }
+        
+        // Calculate relationship with blob
+        const distanceToBlob = Math.sqrt(
+          Math.pow(p.x - attractor.x, 2) + 
+          Math.pow(p.y - attractor.y, 2)
+        );
+        
+        // Update interaction timer
+        if (distanceToBlob < 100) {
+          p.lastInteraction = 0; // reset - we're interacting!
+        } else {
+          p.lastInteraction++;
+        }
+        
+        // Handle sleep fade-out behavior
+        if (p.goingToSleep) {
+          // Gradually slow down movement
+          p.vx *= 0.95; // gentle deceleration
+          p.vy *= 0.95;
+          
+          // Count down sleep timer
+          if (p.sleepTimer > 0) {
+            p.sleepTimer--;
+            // Accelerate life decay for fade-out effect
+            const fadeRate = 1 - (p.sleepTimer / 180); // 0 to 1
+            p.life = Math.max(0, p.life - 0.008 * (1 + fadeRate * 3)); // fade faster as time goes on
+          }
+          
+          // Remove when fully faded
+          if (p.life <= 0) {
+            const index = floatingParticles.indexOf(p);
+            if (index > -1) {
+              floatingParticles.splice(index, 1);
+              console.log(`${p.personality} firefly has peacefully faded away for sleep`);
+            }
+            continue;
+          }
+        }
+        
+        // Handle migration to new mode area (only if not going to sleep)
+        if (p.migrating && p.migrationTargetX !== undefined && !p.goingToSleep) {
+          const migrationDx = p.migrationTargetX - p.x;
+          const migrationDy = p.migrationTargetY - p.y;
+          const migrationDistance = Math.sqrt(migrationDx * migrationDx + migrationDy * migrationDy);
+          
+          if (migrationDistance > 10) {
+            // Gentle migration movement
+            p.vx += migrationDx * p.migrationSpeed;
+            p.vy += migrationDy * p.migrationSpeed;
+            
+            // Personality-based migration style
+            if (p.personality === 'playful') {
+              // Playful particles zigzag while migrating
+              p.vx += Math.sin(p.age * 0.1) * 0.3;
+              p.vy += Math.cos(p.age * 0.1) * 0.2;
+            } else if (p.personality === 'shy') {
+              // Shy particles migrate more cautiously
+              p.migrationSpeed = 0.015;
+            } else if (p.personality === 'friendly') {
+              // Friendly particles migrate eagerly
+              p.migrationSpeed = 0.025;
+            }
+          } else {
+            // Normal arrival
+            p.migrating = false;
+            p.migrationTargetX = undefined;
+            p.migrationTargetY = undefined;
+            console.log(`${p.personality} particle arrived in new area`);
+          }
+        }
+        
+        // Personality-based behavior (only if not going to sleep)
+        if (!p.goingToSleep && p.personality === 'shy') {
+          // Shy particles: maintain comfortable distance, but don't flee constantly
+          if (distanceToBlob < 60) {
+            // Gently drift to a comfortable distance (around 80-120px)
+            const comfortAngle = Math.atan2(p.y - attractor.y, p.x - attractor.x);
+            const gentleDrift = 0.15; // very gentle
+            p.vx += Math.cos(comfortAngle) * gentleDrift;
+            p.vy += Math.sin(comfortAngle) * gentleDrift;
+          } else if (distanceToBlob > 150 && s.random() < 0.02) {
+            // Occasionally drift a bit closer if blob is far away (curiosity)
+            const approachAngle = Math.atan2(attractor.y - p.y, attractor.x - p.x);
+            p.vx += Math.cos(approachAngle) * 0.1;
+            p.vy += Math.sin(approachAngle) * 0.1;
+          }
+          
+        } else if (!p.goingToSleep && p.personality === 'playful') {
+          // Playful particles: dart around, play tag
+          if (distanceToBlob < 120) {
+            if (p.currentMood !== 'playing') {
+              p.currentMood = 'playing';
+              p.moodTimer = 180; // play for 3 seconds
+            }
+            
+            if (p.currentMood === 'playing') {
+              // Dart around playfully - sometimes toward, sometimes away
+              const playAngle = s.random(0, Math.PI * 2);
+              p.vx += Math.cos(playAngle) * 0.6;
+              p.vy += Math.sin(playAngle) * 0.6;
+              
+              // Occasional teasing approach
+              if (s.random() < 0.1) {
+                const approachAngle = Math.atan2(attractor.y - p.y, attractor.x - p.x);
+                p.vx += Math.cos(approachAngle) * 0.4;
+                p.vy += Math.sin(approachAngle) * 0.4;
+              }
+            }
+          }
+          
+        } else if (!p.goingToSleep && p.personality === 'curious') {
+          // Curious particles: approach slowly, then back away, repeat
+          if (distanceToBlob < 200) {
+            if (distanceToBlob > 60) {
+              // Approach curiously
+              const approachAngle = Math.atan2(attractor.y - p.y, attractor.x - p.x);
+              p.vx += Math.cos(approachAngle) * 0.2;
+              p.vy += Math.sin(approachAngle) * 0.2;
+            } else {
+              // Back away a bit when too close
+              const backAngle = Math.atan2(p.y - attractor.y, p.x - attractor.x);
+              p.vx += Math.cos(backAngle) * 0.3;
+              p.vy += Math.sin(backAngle) * 0.3;
+            }
+          }
+          
+        } else if (!p.goingToSleep && p.personality === 'friendly') {
+          // Friendly particles: orbit around blob, follow it
+          if (distanceToBlob < 150) {
+            if (distanceToBlob > 40) {
+              // Gentle approach
+              const approachAngle = Math.atan2(attractor.y - p.y, attractor.x - p.x);
+              p.vx += Math.cos(approachAngle) * 0.15;
+              p.vy += Math.sin(approachAngle) * 0.15;
+            }
+            
+            // Orbital motion when close
+            if (distanceToBlob < 80) {
+              p.orbitAngle += 0.03;
+              const orbitRadius = 60;
+              const orbitX = attractor.x + Math.cos(p.orbitAngle) * orbitRadius;
+              const orbitY = attractor.y + Math.sin(p.orbitAngle) * orbitRadius;
+              
+              p.vx += (orbitX - p.x) * 0.02;
+              p.vy += (orbitY - p.y) * 0.02;
+            }
+          } else if (p.lastInteraction > 120) {
+            // Follow blob if it's been away too long
+            const followAngle = Math.atan2(attractor.y - p.y, attractor.x - p.x);
+            p.vx += Math.cos(followAngle) * 0.1;
+            p.vy += Math.sin(followAngle) * 0.1;
+          }
+        }
+        
+        // Update mood timer
+        if (p.moodTimer > 0) {
+          p.moodTimer--;
+        } else {
+          p.currentMood = 'neutral';
+        }
+        
+        // Base floating movement with personality-influenced wobble
+        const wobbleIntensity = p.personality === 'playful' ? 0.5 : 0.3;
+        p.wobble += 0.02;
+        p.x += p.vx + Math.sin(p.wobble) * wobbleIntensity;
+        p.y += p.vy + Math.cos(p.wobble * 0.7) * (wobbleIntensity * 0.7);
+        
+        // Gentle friction (less for playful particles)
+        const friction = p.personality === 'playful' ? 0.96 : 0.98;
+        p.vx *= friction;
+        p.vy *= friction;
+        
+        // Boundary behavior - more relaxed in home mode
+        if (currentMode === 'home') {
+          // In home mode, use full page boundaries instead of restricted home area
+          const fullPageBounds = {
+            left: 40,
+            right: window.innerWidth - 40,
+            top: 40,
+            bottom: window.innerHeight - 40
+          };
+          
+          if (p.x < fullPageBounds.left || p.x > fullPageBounds.right) {
+            p.vx *= -0.7;
+            p.x = Math.max(fullPageBounds.left, Math.min(fullPageBounds.right, p.x));
+          }
+          if (p.y < fullPageBounds.top || p.y > fullPageBounds.bottom) {
+            p.vy *= -0.7;
+            p.y = Math.max(fullPageBounds.top, Math.min(fullPageBounds.bottom, p.y));
+          }
+        } else {
+          // Other modes use restricted boundaries
+          if (p.x < bounds.left || p.x > bounds.right) {
+            p.vx *= -0.7;
+            p.x = Math.max(bounds.left, Math.min(bounds.right, p.x));
+          }
+          if (p.y < bounds.top || p.y > bounds.bottom) {
+            p.vy *= -0.7;
+            p.y = Math.max(bounds.top, Math.min(bounds.bottom, p.y));
+          }
+        }
+        
+        // Occasional random movement (personality-based)
+        let changeChance = 0.003;
+        if (p.personality === 'playful') changeChance = 0.008;
+        if (p.personality === 'shy') changeChance = 0.001;
+        
+        if (s.random() < changeChance) {
+          const maxSpeed = p.personality === 'playful' ? 1.5 : 1.0;
+          p.vx += s.random(-0.3, 0.3);
+          p.vy += s.random(-0.3, 0.3);
+          p.vx = Math.max(-maxSpeed, Math.min(maxSpeed, p.vx));
+          p.vy = Math.max(-maxSpeed, Math.min(maxSpeed, p.vy));
+        }
+      }
+      
+      // Spawn new particles more frequently (but not during mode transitions)
+      if (s.random() < 0.01 && floatingParticles.length < MAX_FLOATING_PARTICLES && !modeTransition.active) {
+        spawnFloatingParticle();
+      }
+    }
+    
+    // Find closest floating particle to the blob
+    function findClosestParticle() {
+      if (floatingParticles.length === 0) return null;
+      
+      let closest = null;
+      let closestDistance = Infinity;
+      
+      for (const particle of floatingParticles) {
+        const distance = Math.sqrt(
+          Math.pow(particle.x - attractor.x, 2) + 
+          Math.pow(particle.y - attractor.y, 2)
+        );
+        
+        if (distance < closestDistance) {
+          closest = particle;
+          closestDistance = distance;
+        }
+      }
+      
+      return { particle: closest, distance: closestDistance };
+    }
+
+    // Get movement boundaries based on current mode
+    function getBoundaries() {
+      if (currentMode === 'home' && !isMobile()) {
+        const headerRect = document.getElementById('headerText').getBoundingClientRect();
+        const nestRect = document.getElementById('nest-shape').getBoundingClientRect();
+        const headerContainer = document.querySelector('header');
+        const headerContainerRect = headerContainer.getBoundingClientRect();
+        
+        // Use current viewport coordinates - boundaries move with header
+        const visualBounds = {
+          left: headerRect.right + 10,
+          right: headerContainerRect.right - 55,  // move more toward center to align with project blocks
+          top: headerRect.top + 10,
+          bottom: headerContainerRect.bottom - 10  // shorter - don't extend as far down
+        };
+        
+        return {
+          left: visualBounds.left + 15,         // buffer from visual left edge
+          right: visualBounds.right - 30,       // more buffer from visual right edge (blob stays more toward middle)
+          top: visualBounds.top + 15,           // buffer from visual top edge
+          bottom: visualBounds.bottom - 15      // buffer from visual bottom edge
+        };
+      } else {
+        // Roam mode - full page boundaries
+        return {
+          left: 40,
+          right: window.innerWidth - 40,
+          top: 40,
+          bottom: window.innerHeight - 40
+        };
+      }
+    }
+
+    // Set home area position once (positioned relative to header in document coordinates)
+    function setHomeAreaPosition() {
+      const homeAreaDiv = document.getElementById('home-area');
+      const floatingControls = document.querySelector('.floating-controls');
+      if (!homeAreaDiv) return;
+      
+      // Get header elements in document coordinates (not viewport)
+      const headerContainer = document.querySelector('header');
+      const headerText = document.getElementById('headerText');
+      const nestShape = document.getElementById('nest-shape');
+      
+      if (!headerContainer || !headerText || !nestShape) return;
+      
+      // Calculate bounds relative to document (not viewport)
+      const headerRect = headerContainer.getBoundingClientRect();
+      const headerTextRect = headerText.getBoundingClientRect();
+      const nestRect = nestShape.getBoundingClientRect();
+      const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+      
+      const homeBounds = {
+        left: nestRect.left - 10,
+        right: headerRect.right - 55,
+        top: headerTextRect.top + scrollY + 10,  // add scroll offset for document position
+        bottom: headerRect.bottom + scrollY - 10
+      };
+      
+      homeAreaDiv.style.left = (homeBounds.left - 10) + 'px';
+      homeAreaDiv.style.top = (homeBounds.top - 10) + 'px';
+      homeAreaDiv.style.width = (homeBounds.right - homeBounds.left + 20) + 'px';
+      homeAreaDiv.style.height = (homeBounds.bottom - homeBounds.top + 20) + 'px';
+      
+      // Position floating controls inside the home area (top right)
+      if (floatingControls) {
+        floatingControls.style.left = (homeBounds.right - 130) + 'px';
+        floatingControls.style.top = (homeBounds.top + 8) + 'px';
+      }
+    }
+
+    // Migrate particles to new mode area
+    function migrateParticlesToMode(mode) {
+      if (mode === 'home') {
+        // In home mode, let particles roam freely - no migration needed
+        console.log('Particles staying free in home mode');
+        return;
+      } else if (mode === 'nest') {
+        // Nest mode: fireflies become still and fade away peacefully
+        console.log('Fireflies settling down for peaceful sleep...');
+        for (const particle of floatingParticles) {
+          particle.goingToSleep = true;
+          particle.sleepTimer = s.random(60, 180); // 1-3 seconds to fade out
+          particle.originalMaxLife = particle.maxLife;
+          particle.migrating = false; // stop any current migration
+          
+          console.log(`${particle.personality} firefly settling down for sleep`);
+        }
+        return;
+      }
+      
+      // Other modes: normal migration within bounds
+      const bounds = getBoundaries();
+      
+      for (const particle of floatingParticles) {
+        // Calculate a gentle migration target within the new bounds
+        const targetX = s.random(bounds.left + 60, bounds.right - 60);
+        const targetY = s.random(bounds.top + 60, bounds.bottom - 60);
+        
+        // Set migration properties
+        particle.migrating = true;
+        particle.migrationTargetX = targetX;
+        particle.migrationTargetY = targetY;
+        particle.migrationSpeed = 0.02; // gentle migration
+        particle.exitingForSleep = false;
+        
+        console.log(`${particle.personality} particle migrating to ${mode} mode`);
+      }
+    }
+    
+    // Bring fireflies back when leaving nest mode
+    function returnFirefliesFromSleep() {
+      console.log('Welcoming fireflies back from their rest...');
+      
+      // Spawn new fireflies from the edges
+      const returnCount = Math.min(MAX_FLOATING_PARTICLES, 3);
+      for (let i = 0; i < returnCount; i++) {
+        // Spawn from random edge
+        const edges = ['top', 'bottom', 'left', 'right'];
+        const entryEdge = s.random(edges);
+        
+        let startX, startY, targetX, targetY;
+        const bounds = getBoundaries();
+        
+        switch (entryEdge) {
+          case 'top':
+            startX = s.random(bounds.left, bounds.right);
+            startY = -50;
+            targetX = s.random(bounds.left + 60, bounds.right - 60);
+            targetY = s.random(bounds.top + 60, bounds.bottom - 60);
+            break;
+          case 'bottom':
+            startX = s.random(bounds.left, bounds.right);
+            startY = window.innerHeight + 50;
+            targetX = s.random(bounds.left + 60, bounds.right - 60);
+            targetY = s.random(bounds.top + 60, bounds.bottom - 60);
+            break;
+          case 'left':
+            startX = -50;
+            startY = s.random(bounds.top, bounds.bottom);
+            targetX = s.random(bounds.left + 60, bounds.right - 60);
+            targetY = s.random(bounds.top + 60, bounds.bottom - 60);
+            break;
+          case 'right':
+            startX = window.innerWidth + 50;
+            startY = s.random(bounds.top, bounds.bottom);
+            targetX = s.random(bounds.left + 60, bounds.right - 60);
+            targetY = s.random(bounds.top + 60, bounds.bottom - 60);
+            break;
+        }
+        
+        // Create returning firefly
+        setTimeout(() => {
+          if (floatingParticles.length < MAX_FLOATING_PARTICLES) {
+            const personalityWeights = [
+              { type: 'playful', weight: 0.35 },
+              { type: 'friendly', weight: 0.35 },
+              { type: 'curious', weight: 0.25 },
+              { type: 'shy', weight: 0.05 }
+            ];
+            
+            const rand = s.random();
+            let cumulative = 0;
+            let personality = 'friendly';
+            
+            for (const p of personalityWeights) {
+              cumulative += p.weight;
+              if (rand < cumulative) {
+                personality = p.type;
+                break;
+              }
+            }
+            
+            const particle = {
+              x: startX,
+              y: startY,
+              vx: 0,
+              vy: 0,
+              size: s.random(8, 15),
+              color: s.random(['#FFD700', '#32CD32', '#FF6347', '#1E90FF', '#FF69B4', '#00CED1', '#9370DB']),
+              life: 1.0,
+              maxLife: s.random(800, 1600),
+              age: 0,
+              wobble: s.random(0, Math.PI * 2),
+              personality: personality,
+              moodTimer: 0,
+              currentMood: 'neutral',
+              orbitAngle: s.random(0, Math.PI * 2),
+              lastInteraction: 0,
+              eyeOffsetX: 0,
+              eyeOffsetY: 0,
+              migrating: true,
+              migrationTargetX: targetX,
+              migrationTargetY: targetY,
+              migrationSpeed: 0.015,
+              exitingForSleep: false
+            };
+            
+            floatingParticles.push(particle);
+            console.log(`${personality} firefly returning from ${entryEdge}`);
+          }
+        }, i * 1000); // stagger returns by 1 second each
+      }
+    }
+
+    // Mode switching function
+    function setMode(mode) {
+      // On mobile, convert home mode to roam mode
+      if (isMobile() && mode === 'home') {
+        mode = 'roam';
+      }
+      
+      const previousMode = currentMode;
+      currentMode = mode;
+      
+      // Start mode transition for particles
+      if (previousMode !== mode) {
+        modeTransition.active = true;
+        modeTransition.timer = 180; // 3 seconds for gentle transition
+        modeTransition.targetMode = mode;
+        
+        // Migrate particles to new area
+        setTimeout(() => {
+          migrateParticlesToMode(mode);
+        }, 60); // Start particle migration after blob starts moving
+      }
+      document.querySelectorAll('.mode-toggle button').forEach(btn => btn.classList.remove('active'));
+      const modeBtn = document.getElementById(mode + '-btn');
+      if (modeBtn) modeBtn.classList.add('active');
+      
+      // Update home area visibility (only on desktop)
+      if (!isMobile()) {
+        setHomeAreaPosition();
+      }
+      
+      // Smart pathfinding through the door
+      if (previousMode === 'roam' && mode === 'home') {
+        // Coming home - guide blob to the door from outside
+        const bounds = getBoundaries();
+        const doorWidth = 35;
+        const doorX = bounds.right - doorWidth - 5;
+        const doorY = bounds.bottom - 12; // center of door area
+        
+        doorPosition.x = doorX + doorWidth/2;
+        doorPosition.y = doorY;
+        
+        const distanceToDoor = Math.sqrt(
+          Math.pow(leader.x - doorPosition.x, 2) + 
+          Math.pow(leader.y - doorPosition.y, 2)
+        );
+        
+        if (distanceToDoor > 50) {
+          const angle = Math.atan2(doorPosition.y - leader.y, doorPosition.x - leader.x);
+          dirX = Math.cos(angle);
+          dirY = Math.sin(angle);
+          
+          // Set target toward the door
+          leader.targetX = leader.x + dirX * 80;
+          leader.targetY = leader.y + dirY * 80;
+          
+          stepTimer = Math.min(stepTimer, 15); // faster homing
+        }
+      } else if (mode === 'roam') {
+        // Entering roam mode - continue from current position with random direction
+        leader.targetX = leader.x;
+        leader.targetY = leader.y;
+        
+        // Set a random direction for the next movement
+        const randomAngle = s.random(0, Math.PI * 2);
+        dirX = Math.cos(randomAngle);
+        dirY = Math.sin(randomAngle);
+        
+        // Reset step timer for immediate movement
+        stepTimer = 1;
+      }
+      
+      if (mode === 'nest') {
+        // Position blob to gently move toward the nest bowl
+        const headerRect = document.getElementById('headerText').getBoundingClientRect();
+        const nestElement = document.getElementById('nest-shape');
+        const nestRect = nestElement.getBoundingClientRect();
+        
+        // Add scroll offset to get page coordinates
+        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+        
+        // Center the blob in the nest bowl
+        const nestX = nestRect.left + nestRect.width / 2;
+        const nestY = nestRect.top + scrollY + nestRect.height * 0.2; // sit in the bowl part, slightly higher
+        
+        // Set nest target but don't move attractor yet - let leader get there first
+        leader.targetX = nestX;
+        leader.targetY = nestY;
+        // Don't set attractor target immediately - let it follow leader naturally
+        
+        console.log(`Blob heading to nest at: ${nestX}, ${nestY} from current position: ${leader.x}, ${leader.y}`);
+        
+        // Make nest more visible when blob is nesting
+        document.getElementById('nest-shape').classList.add('active');
+        
+        chasingMode = false;
+        // Don't freeze movement - let blob travel to nest first
+        pause = 0; // allow movement
+        stepTimer = 1; // allow immediate movement toward nest
+      } else {
+        // Wake-up sequence when leaving nest
+        if (previousMode === 'nest') {
+          // Start wake-up sequence instead of immediately moving
+          wakeUpSequence.active = true;
+          wakeUpSequence.phase = 'waking';
+          wakeUpSequence.timer = 120; // 2 seconds of wake-up routine
+          wakeUpSequence.blinksLeft = 4; // number of wake-up blinks
+          
+          // Keep blob in nest during wake-up
+          pause = 999999;
+          stepTimer = 999999;
+          
+          // Start first blink immediately
+          isBlinking = true;
+          blinkTimer = blinkDuration;
+          nextBlinkIn = 30; // next blink in 0.5 seconds
+          
+          // Bring fireflies back from their rest
+          setTimeout(() => {
+            returnFirefliesFromSleep();
+          }, 2000); // after wake-up sequence starts
+          
+          console.log('Starting wake-up sequence...');
+        } else {
+          // Normal mode switch (not from nest)
+          document.getElementById('nest-shape').classList.remove('active');
+          pause = 0;
+          stepTimer = s.random(MIN_STEP_TIME, MAX_STEP_TIME);
+        }
+      }
+    }
+
+    s.draw = function () {
+      s.clear(); // Clear canvas each frame
+      
+      // Make sure we have particles
+      if (parts.length === 0) return;
+      
+      // Handle initial wake-up sequence (automatic after 3 seconds)
+      if (wakeUpTimer > 0 && currentMode === 'nest') {
+        wakeUpTimer--;
+        if (wakeUpTimer === 0) {
+          // Time to wake up! Switch to home mode
+          isWakingUp = true;
+          setMode('home');
+        }
+      }
+      
+      // Handle wake-up sequence when leaving nest
+      if (wakeUpSequence.active) {
+        if (wakeUpSequence.phase === 'waking') {
+          wakeUpSequence.timer--;
+          
+          // Handle wake-up blinking
+          if (wakeUpSequence.blinksLeft > 0 && nextBlinkIn <= 0) {
+            isBlinking = true;
+            blinkTimer = blinkDuration * 1.5; // slightly longer blinks when waking up
+            wakeUpSequence.blinksLeft--;
+            
+            if (wakeUpSequence.blinksLeft > 0) {
+              nextBlinkIn = s.random(20, 40); // 0.3-0.7 seconds between blinks
+            }
+            
+            console.log(`Wake-up blink, ${wakeUpSequence.blinksLeft} blinks left`);
+          }
+          
+          // Gentle stretching movement during wake-up
+          if (wakeUpSequence.timer < 60) {
+            const stretchAmount = Math.sin((60 - wakeUpSequence.timer) * 0.1) * 2;
+            // Add tiny stretch movements
+            for (const p of parts) {
+              p.targetY += stretchAmount * 0.1;
+            }
+          }
+          
+          // End wake-up sequence
+          if (wakeUpSequence.timer <= 0 && wakeUpSequence.blinksLeft <= 0) {
+            wakeUpSequence.phase = 'stretching';
+            wakeUpSequence.timer = 60; // 1 second of stretching
+            console.log('Wake-up blinking complete, starting stretch...');
+          }
+          
+        } else if (wakeUpSequence.phase === 'stretching') {
+          wakeUpSequence.timer--;
+          
+          // Gentle stretching and preparation to move
+          const stretchProgress = (60 - wakeUpSequence.timer) / 60; // 0 to 1
+          
+          // Gradually reduce pause to allow movement
+          pause = Math.max(0, 999999 * (1 - stretchProgress));
+          stepTimer = Math.max(1, 999999 * (1 - stretchProgress));
+          
+          if (wakeUpSequence.timer <= 0) {
+            // Wake-up complete! Resume normal movement
+            wakeUpSequence.active = false;
+            document.getElementById('nest-shape').classList.remove('active');
+            pause = 0;
+            stepTimer = s.random(MIN_STEP_TIME, MAX_STEP_TIME);
+            console.log('Wake-up sequence complete! Ready to move.');
+          }
+        }
+      }
+
+      // Handle scroll pause
+      if (scrollTimer > 0) {
+        scrollTimer--;
+      }
+      
+      // Special nest travel behavior - handle this BEFORE other movement logic
+      if (currentMode === 'nest' && !isScrolling && scrollTimer === 0) {
+        // Get current nest position (in case of scrolling)
+        const nestElement = document.getElementById('nest-shape');
+        const nestRect = nestElement.getBoundingClientRect();
+        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+        const nestX = nestRect.left + nestRect.width / 2;
+        const nestY = nestRect.top + scrollY + nestRect.height * 0.2;
+        
+        // Check if blob has reached the nest
+        const nestDistance = Math.sqrt(
+          Math.pow(leader.x - nestX, 2) + 
+          Math.pow(leader.y - nestY, 2)
+        );
+        
+        console.log(`Nest travel - Current: (${leader.x.toFixed(1)}, ${leader.y.toFixed(1)}) Target: (${nestX.toFixed(1)}, ${nestY.toFixed(1)}) Distance: ${nestDistance.toFixed(1)}px`);
+        
+        if (nestDistance > 25) {
+          // Still traveling to nest - DIRECT movement to nest coordinates
+          leader.targetX = nestX;
+          leader.targetY = nestY;
+          
+          // Force movement toward nest
+          pause = 0;
+          stepTimer = 0; // trigger immediate step
+          chasingMode = false; // disable particle chasing
+          
+          console.log('Blob traveling to nest...');
+        } else {
+          // Reached nest - start settling down
+          console.log('Blob has reached the nest, settling down...');
+          leader.targetX = nestX; // lock to exact nest position
+          leader.targetY = nestY;
+          
+          if (pause < 500) {
+            pause = Math.min(pause + 30, 999999); // gradually stop moving
+            stepTimer = Math.min(stepTimer + 20, 999999);
+          }
+        }
+      }
+      
+      // Movement logic - chase particles or wander (only when NOT in nest mode and not scrolling)
+      if (currentMode !== 'nest' && !isScrolling && scrollTimer === 0) {
+        // Check if we should be chasing a particle
+        const closestResult = findClosestParticle();
+        
+        // Find a friend to interact with (prioritize friendly/curious particles)
+        let bestFriend = null;
+        let bestScore = -1;
+        
+        for (const particle of floatingParticles) {
+          const distance = Math.sqrt(
+            Math.pow(particle.x - leader.x, 2) + 
+            Math.pow(particle.y - leader.y, 2)
+          );
+          
+          if (distance < CHASE_DISTANCE) {
+            // Score based on personality and distance
+            let score = (CHASE_DISTANCE - distance) / CHASE_DISTANCE; // closer = higher score
+            
+            // Personality bonuses - prioritize positive interactions
+            if (particle.personality === 'friendly') score += 0.6;
+            if (particle.personality === 'curious') score += 0.4;
+            if (particle.personality === 'playful') score += 0.5;
+            if (particle.personality === 'shy') {
+              // Only approach shy particles if they're relatively close and not moving away
+              const particleMovingAway = (particle.vx * (particle.x - leader.x) + 
+                                         particle.vy * (particle.y - leader.y)) > 0;
+              if (particleMovingAway || distance > 150) {
+                score -= 0.8; // much lower priority
+              }
+            }
+            
+            if (score > bestScore) {
+              bestScore = score;
+              bestFriend = particle;
+            }
+          }
+        }
+        
+        if (bestFriend) {
+          chasingMode = true;
+          chasingModeTimer = 240; // longer interaction time for friendship
+          targetParticle = bestFriend;
+        }
+        
+        if (chasingMode && targetParticle) {
+          // FRIENDSHIP MODE: Gentle, playful approach
+          const friendAngle = Math.atan2(targetParticle.y - leader.y, targetParticle.x - leader.x);
+          const friendDistance = Math.sqrt(
+            Math.pow(targetParticle.x - leader.x, 2) + 
+            Math.pow(targetParticle.y - leader.y, 2)
+          );
+          
+          // Adjust approach based on friend's personality - much more respectful
+          let approachIntensity = 0.6; // gentler default
+          let respectfulDistance = 50; // how close to get before stopping/slowing
+          
+          if (targetParticle.personality === 'shy') {
+            approachIntensity = 0.2; // very hesitant approach
+            respectfulDistance = 80; // keep more distance
+            
+            // If shy particle is drifting away, blob stops pursuing
+            const particleMovingAway = (targetParticle.vx * (targetParticle.x - attractor.x) + 
+                                       targetParticle.vy * (targetParticle.y - attractor.y)) > 0;
+            if (particleMovingAway && friendDistance > 70) {
+              approachIntensity = 0; // stop approaching, just watch
+            }
+          } else if (targetParticle.personality === 'playful') {
+            approachIntensity = 1.0; // energetic but not overwhelming
+            respectfulDistance = 30; // can get closer for play
+          } else if (targetParticle.personality === 'friendly') {
+            approachIntensity = 0.5; // calm and steady
+            respectfulDistance = 25; // close friendship distance
+          } else if (targetParticle.personality === 'curious') {
+            approachIntensity = 0.4; // let them approach first
+            respectfulDistance = 40;
+          }
+          
+          // Respectful distance behavior - slow down or stop when close
+          if (friendDistance < respectfulDistance) {
+            approachIntensity *= 0.2; // almost stop
+            
+            // If it's a shy particle, actually back away slightly
+            if (targetParticle.personality === 'shy') {
+              approachIntensity = -0.1; // gentle retreat
+            }
+          } else if (friendDistance < respectfulDistance * 1.5) {
+            approachIntensity *= 0.4; // slow approach
+          }
+          
+          // Jellyfish-like pulsing movement (gentler than before)
+          const pulsePower = Math.sin(jellyfishPhase * 1.2) * 0.5 + 0.5;
+          const friendSpeed = Math.min(friendDistance * 0.04, 2.0) * approachIntensity;
+          
+          const pulseMultiplier = 1.0 + pulsePower * 1.2; // gentler pulsing
+          const stepSize = friendSpeed * pulseMultiplier * 6;
+          
+          leader.targetX = leader.x + Math.cos(friendAngle) * stepSize;
+          leader.targetY = leader.y + Math.sin(friendAngle) * stepSize;
+          
+          // Gentle wobble movement
+          const wobble = Math.sin(jellyfishPhase * 0.8) * 0.15;
+          dirX = Math.cos(friendAngle + wobble);
+          dirY = Math.sin(friendAngle + wobble);
+          
+          // Relaxed timing
+          stepTimer = Math.floor(20 + pulsePower * 15);
+          pause = Math.floor(8 + pulsePower * 12);
+          
+          // Respectful interaction ending - stop if friend seems uncomfortable
+          chasingModeTimer--;
+          
+          // Check if particle is consistently moving away (uncomfortable)
+          if (targetParticle.personality === 'shy') {
+            const particleMovingAway = (targetParticle.vx * (targetParticle.x - attractor.x) + 
+                                       targetParticle.vy * (targetParticle.y - attractor.y)) > 0;
+            if (particleMovingAway && friendDistance > 100) {
+              // Shy particle is moving away and keeping distance - respect that
+              chasingMode = false;
+              targetParticle = null;
+              console.log('Respecting shy particle\'s space');
+            }
+          }
+          
+          // Normal ending conditions
+          if (chasingModeTimer <= 0 || friendDistance > 400) {
+            chasingMode = false;
+            targetParticle = null;
+          }
+          
+        } else {
+          // WANDERING MODE: Normal jellyfish-like movement
+          if (pause > 0) {
+            pause--;
+          } else {
+            stepTimer--;
+            if (stepTimer <= 0) {
+              // Take a 2D step with random direction
+              const stepAngle = Math.atan2(dirY, dirX) + s.random(-0.8, 0.8); // slight direction variation
+              dirX = Math.cos(stepAngle);
+              dirY = Math.sin(stepAngle);
+              
+              leader.targetX += nextStepSize * dirX;
+              leader.targetY += nextStepSize * dirY;
+              
+              // Prepare next step with jellyfish-influenced timing and size
+              const pulsePower = Math.sin(jellyfishPhase) * 0.5 + 0.5;
+              nextStepSize = s.random(MIN_STEP_SIZE, MAX_STEP_SIZE) * (0.8 + pulsePower * 0.4);
+              stepTimer = s.random(MIN_STEP_TIME, MAX_STEP_TIME) * (0.7 + pulsePower * 0.6); // variable timing
+              
+              // Sometimes change direction randomly (jellyfish-like wandering)
+              if (s.random() < 0.20) {  // 20% chance for more wandering
+                const newAngle = s.random(0, Math.PI * 2);
+                dirX = Math.cos(newAngle);
+                dirY = Math.sin(newAngle);
+                pause = s.floor(s.random(20, 60));
+              }
+              
+              // Check bounds and bounce off walls
+              const bounds = getBoundaries();
+              let bounced = false;
+              
+              if (leader.targetX > bounds.right) { 
+                leader.targetX = bounds.right; 
+                dirX = -Math.abs(dirX); // bounce left
+                bounced = true;
+              }
+              if (leader.targetX < bounds.left) { 
+                leader.targetX = bounds.left; 
+                dirX = Math.abs(dirX); // bounce right
+                bounced = true;
+              }
+              if (leader.targetY > bounds.bottom) { 
+                leader.targetY = bounds.bottom; 
+                dirY = -Math.abs(dirY); // bounce up
+                bounced = true;
+              }
+              if (leader.targetY < bounds.top) { 
+                leader.targetY = bounds.top; 
+                dirY = Math.abs(dirY); // bounce down
+                bounced = true;
+              }
+              
+              if (bounced) {
+                pause = s.floor(s.random(40, 100));
+              }
+            }
+          }
+        }
+        
+        // DRAMATIC jellyfish movement with very pronounced pulsing
+        const baseSpeed = chasingMode ? 0.08 : 0.05; // even slower base for more contrast
+        const pulsePower = Math.sin(jellyfishPhase * 1.2) * 0.5 + 0.5; // 0 to 1, faster oscillation
+        const strongPulsation = pulsePower * 0.15; // much stronger pulsation range
+        
+        // Dramatic momentum bursts - jellyfish "jet propulsion"
+        const jetPulse = Math.sin(jellyfishPhase * 0.6) * 0.08; // strong jets
+        const rapidPulse = Math.sin(jellyfishPhase * 3) * 0.04; // rapid flutter
+        
+        const totalLerpSpeed = Math.max(0.01, baseSpeed + strongPulsation + jetPulse + rapidPulse);
+        
+        leader.x = s.lerp(leader.x, leader.targetX, totalLerpSpeed);
+        leader.y = s.lerp(leader.y, leader.targetY, totalLerpSpeed);
+      }
+      
+      // Update jellyfish pulsing phase - faster for more noticeable pulsing
+      jellyfishPhase += 0.05;
+      
+      // Handle nest mode with settling behavior
+      if (currentMode === 'nest') {
+        breathingPhase += 0.02;
+        
+        // Check if blob has settled in nest
+        const nestDistance = Math.sqrt(
+          Math.pow(attractor.x - attractor.targetX, 2) + 
+          Math.pow(attractor.y - attractor.targetY, 2)
+        );
+        
+        // Once settled (close to nest position), increase pause for sleeping
+        if (nestDistance < 20 && pause < 500) {
+          pause = Math.min(pause + 10, 999999); // gradually increase pause until fully settled
+          stepTimer = Math.min(stepTimer + 5, 999999);
+        }
+        
+        // Only spawn Z particles when fully settled
+        if (nestDistance < 15 && s.frameCount % 90 === 0) { // every 1.5 seconds
+          zParticles.push({
+            x: attractor.x + s.random(-10, 10),
+            y: attractor.y - RADIUS,
+            vy: -0.8,
+            life: 1.0,
+            size: s.random(8, 12)
+          });
+        }
+        
+        // Update Z particles
+        for (let i = zParticles.length - 1; i >= 0; i--) {
+          const z = zParticles[i];
+          z.y += z.vy;
+          z.life -= 0.008;
+          z.size += 0.1;
+          
+          if (z.life <= 0) {
+            zParticles.splice(i, 1);
+          }
+        }
+      }
+      
+      // Handle blinking and looking behavior
+      if (currentMode !== 'nest') {
+        // Normal blinking (not during wake-up sequence)
+        if (wakingUpBlinks > 0) {
+          if (blinkTimer <= 0) {
+            isBlinking = true;
+            blinkTimer = blinkDuration;
+            wakingUpBlinks--;
+            nextBlinkIn = 15; // quick succession when waking up
+          }
+        } else {
+          // Normal blinking
+          nextBlinkIn--;
+          if (nextBlinkIn <= 0) {
+            isBlinking = true;
+            blinkTimer = blinkDuration;
+            nextBlinkIn = s.random(120, 400); // 2-7 seconds
+          }
+          
+          // Looking at user behavior
+          nextLookIn--;
+          if (nextLookIn <= 0) {
+            lookingAtUser = true;
+            lookTimer = s.random(60, 180); // look for 1-3 seconds
+            nextLookIn = s.random(600, 1800); // next look in 10-30 seconds
+            
+            // Blink when starting to look at user
+            isBlinking = true;
+            blinkTimer = blinkDuration;
+          }
+          
+          if (lookingAtUser) {
+            lookTimer--;
+            if (lookTimer <= 0) {
+              lookingAtUser = false;
+              // Blink when stopping to look
+              isBlinking = true;
+              blinkTimer = blinkDuration;
+            }
+          }
+        }
+        
+        // Update blink timer
+        if (isBlinking) {
+          blinkTimer--;
+          if (blinkTimer <= 0) {
+            isBlinking = false;
+          }
+        }
+      }
+      
+      // Always update blink timer even during wake-up sequence
+      if (isBlinking && blinkTimer > 0) {
+        blinkTimer--;
+        if (blinkTimer <= 0) {
+          isBlinking = false;
+        }
+      }
+
+      // Update mode transition
+      if (modeTransition.active) {
+        modeTransition.timer--;
+        if (modeTransition.timer <= 0) {
+          modeTransition.active = false;
+        }
+      }
+      
+      // Update floating particles
+      updateFloatingParticles();
+      
+      // Simple chasing behavior (only when not nesting and not scrolling)
+      if (currentMode !== 'nest' && !isScrolling && scrollTimer === 0) {
+        // Just update particles and let the movement logic handle chasing
+        // No special behaviors, just playful chasing
+      } else {
+        // When nesting or scrolling, disable chasing
+        chasingMode = false;
+        chasingModeTimer = 0;
+        targetParticle = null;
+      }
+      
+      
+      // Update attractor position - follows leader with jellyfish lag
+      attractor.targetX = leader.x;
+      attractor.targetY = leader.y;
+      
+      // Jellyfish-style attractor movement with pulsing
+      const attractorPulsePower = Math.sin(jellyfishPhase * 1.2) * 0.5 + 0.5;
+      const attractorBaseSpeed = 0.08; // slower for more organic feel
+      const attractorPulsation = attractorPulsePower * 0.06;
+      const attractorLerpSpeed = attractorBaseSpeed + attractorPulsation;
+      
+      // Add slight delay/lag for more organic movement
+      let lagFactor = attractorLerpSpeed;
+      if (currentMode === 'nest') {
+        // Check if we're settling into nest
+        const nestDistance = Math.sqrt(
+          Math.pow(attractor.x - attractor.targetX, 2) + 
+          Math.pow(attractor.y - attractor.targetY, 2)
+        );
+        
+        if (nestDistance > 50) {
+          lagFactor = 0.02; // very gentle approach to nest
+        } else {
+          lagFactor = 0.01; // extremely slow final settling
+        }
+      }
+      
+      attractor.x = s.lerp(attractor.x, attractor.targetX, lagFactor);
+      attractor.y = s.lerp(attractor.y, attractor.targetY, lagFactor);
+      
+      // Update eye positions
+      let eyeTargetX, eyeTargetY;
+      
+      if (lookingAtUser && currentMode !== 'nest') {
+        // Looking directly at user (straight ahead)
+        eyeTargetX = attractor.x;
+        eyeTargetY = attractor.y - RADIUS * 0.5;
+        
+        leftEye.x = s.lerp(leftEye.x, eyeTargetX - EYE_SEPARATION * 0.5, 0.15);
+        leftEye.y = s.lerp(leftEye.y, eyeTargetY, 0.15);
+        rightEye.x = s.lerp(rightEye.x, eyeTargetX + EYE_SEPARATION * 0.5, 0.15);
+        rightEye.y = s.lerp(rightEye.y, eyeTargetY, 0.15);
+        
+      } else {
+        // Walking mode: eyes lead the movement and anticipate direction
+        const deltaX = leader.targetX - leader.x;
+        const deltaY = leader.targetY - leader.y;
+        const movementMagnitude = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        
+        if (movementMagnitude > 0.5 || chasingMode) {
+          // Moving: eyes lead in direction of movement
+          const moveAngle = Math.atan2(deltaY, deltaX);
+          const anticipation = chasingMode ? 1.2 : 0.8; // eyes lead more when chasing
+          
+          // Position eyes ahead of the blob center in movement direction
+          const leadDistance = RADIUS * anticipation;
+          const eyeCenterX = attractor.x + Math.cos(moveAngle) * leadDistance;
+          const eyeCenterY = attractor.y + Math.sin(moveAngle) * leadDistance * 0.5 - RADIUS * 0.3;
+          
+          eyeTargetX = eyeCenterX;
+          eyeTargetY = eyeCenterY;
+        } else {
+          // Stationary: eyes face forward on top of blob
+          eyeTargetX = attractor.x;
+          eyeTargetY = attractor.y - RADIUS * 0.5;
+        }
+        
+        // Eyes move faster to lead the movement
+        const eyeSpeed = chasingMode ? 0.25 : 0.18; // faster eye movement
+        leftEye.x = s.lerp(leftEye.x, eyeTargetX - EYE_SEPARATION * 0.5, eyeSpeed);
+        leftEye.y = s.lerp(leftEye.y, eyeTargetY, eyeSpeed);
+        rightEye.x = s.lerp(rightEye.x, eyeTargetX + EYE_SEPARATION * 0.5, eyeSpeed);
+        rightEye.y = s.lerp(rightEye.y, eyeTargetY, eyeSpeed);
+      }
+      
+      // Calculate blob state for deformation
+      const isMoving = (Math.abs(leader.x - leader.targetX) > 1 || Math.abs(leader.y - leader.targetY) > 1);
+      const velocityX = (leader.targetX - leader.x) / 10; // direction of movement
+      const velocityY = (leader.targetY - leader.y) / 10;
+      const velocity = Math.sqrt(velocityX * velocityX + velocityY * velocityY);
+      const stretch = velocity * (chasingMode ? 2.5 : 1.5); // more stretch when chasing
+      
+      // Draw floating lightning bug friends (before blur is applied)
+      s.drawingContext.filter = 'none'; // Make sure no filter is applied to particles
+      for (const particle of floatingParticles) {
+        s.noStroke();
+        const alpha = particle.life * 255;
+        
+        // Lightning bug visual effects
+        let glowIntensity = 12; // base glow for lightning bug effect
+        let sizeMultiplier = 1;
+        let flickerIntensity = 1;
+        
+        // Personality-based lightning bug behavior
+        if (particle.migrating) {
+          glowIntensity = 18; // bright during migration
+          sizeMultiplier = 1 + Math.sin(jellyfishPhase * 2) * 0.1;
+          flickerIntensity = 1.2; // brighter flicker while moving
+        } else if (particle.personality === 'playful' && particle.currentMood === 'playing') {
+          glowIntensity = 20;
+          sizeMultiplier = 1.1 + Math.sin(jellyfishPhase * 4) * 0.15; // excited flickering
+          flickerIntensity = 1.3;
+        } else if (particle.personality === 'friendly') {
+          glowIntensity = 15;
+          sizeMultiplier = 1 + Math.sin(jellyfishPhase * 1.8) * 0.08; // warm steady glow
+          flickerIntensity = 1.1;
+        } else if (particle.personality === 'curious') {
+          // Curious lightning bugs have irregular flickers
+          const irregularFlicker = Math.sin(jellyfishPhase * 3.2) * Math.sin(jellyfishPhase * 0.7);
+          glowIntensity = 14 + irregularFlicker * 8;
+          flickerIntensity = 1 + irregularFlicker * 0.3;
+        } else if (particle.personality === 'shy') {
+          glowIntensity = 8; // dimmer, gentle glow
+          sizeMultiplier = 0.85;
+          flickerIntensity = 0.8;
+        }
+        
+        // Lightning bug flicker effect
+        const flicker = Math.sin(jellyfishPhase * 2.5 + particle.wobble) * 0.3 + 0.7; // 0.4 to 1.0
+        const finalGlow = glowIntensity * flicker * flickerIntensity;
+        
+        // Simple firefly light - just a glowing orb that blinks
+        const currentColor = s.color(particle.color);
+        currentColor.setAlpha(alpha * flicker);
+        s.fill(currentColor);
+        
+        // Main glow effect
+        s.drawingContext.shadowColor = particle.color;
+        s.drawingContext.shadowBlur = finalGlow;
+        s.ellipse(particle.x, particle.y, particle.size * sizeMultiplier, particle.size * sizeMultiplier);
+        
+        // Inner bright core for more realistic firefly effect
+        const coreColor = s.color(255, 255, 200); // bright yellow-white core
+        coreColor.setAlpha(alpha * flicker * 0.8);
+        s.fill(coreColor);
+        s.ellipse(particle.x, particle.y, particle.size * sizeMultiplier * 0.4, particle.size * sizeMultiplier * 0.4);
+        
+        s.drawingContext.shadowBlur = 0;
+      }
+      
+      // Apply consistent blur for smooth blob appearance
+      s.drawingContext.filter = 'blur(3px)'; // Consistent blur, slightly lighter than before
+      
+      // Particles follow the attractor with gentle deformation
+      for (let i = 0; i < parts.length; i++) {
+        const p = parts[i];
+        // Base position relative to attractor with VERY pronounced jellyfish pulsing
+        let pulseAmount;
+        if (currentMode === 'nest') {
+          // Gentle breathing motion when nesting, smaller and more compact
+          pulseAmount = Math.sin(breathingPhase) * 0.08 - 0.15; // slightly more visible breathing
+        } else {
+          // MUCH more pronounced jellyfish pulsing when active
+          const mainPulse = Math.sin(jellyfishPhase + p.angle) * 0.6; // very strong main pulse
+          const secondaryPulse = Math.sin(jellyfishPhase * 2.2 + p.angle * 0.3) * 0.25; // stronger secondary rhythm
+          const tertiaryPulse = Math.sin(jellyfishPhase * 0.7 + p.ring * 0.5) * 0.15; // ring-based variation
+          pulseAmount = mainPulse + secondaryPulse + tertiaryPulse;
+        }
+        let offX = p.baseOffX * (1 + pulseAmount);
+        let offY = p.baseOffY * (1 + pulseAmount * 0.5);
+        
+        // Gentle movement influence - let springs handle most of the deformation
+        if (isMoving && chasingMode) {
+          // Subtle directional bias when approaching friends
+          const movementInfluence = targetParticle && targetParticle.personality === 'shy' ? 0.2 : 0.3;
+          offX += velocityX * RADIUS * movementInfluence * (p.ring * 0.2 + 0.1);
+          offY += velocityY * RADIUS * movementInfluence * (p.ring * 0.2 + 0.1);
+        }
+        
+        // Happy bouncing when interacting with friends
+        if (chasingMode && targetParticle) {
+          const friendDistance = Math.sqrt(
+            Math.pow(targetParticle.x - attractor.x, 2) + 
+            Math.pow(targetParticle.y - attractor.y, 2)
+          );
+          
+          if (friendDistance < 100) {
+            // Gentle happy bouncing
+            const happyBounce = Math.sin(jellyfishPhase * 2) * 0.1;
+            offY += happyBounce * RADIUS * (p.ring * 0.3 + 0.7);
+          }
+        }
+        
+        // Target position relative to attractor
+        p.targetX = attractor.x + offX;
+        p.targetY = Math.min(attractor.y + offY, ground);
+      }
+      
+      // Second pass: apply spring network forces
+      const springStrength = 0.03; // much looser springs for more deformation
+      const dampening = 0.88; // more dampening for fluid movement
+      const maxSpringDist = RADIUS * 3.5; // even longer spring connections
+      
+      // Initialize spring forces
+      for (const p of parts) {
+        p.springForceX = 0;
+        p.springForceY = 0;
+      }
+      
+      for (let i = 0; i < parts.length; i++) {
+        const p1 = parts[i];
+        
+        for (let j = i + 1; j < parts.length; j++) {
+          const p2 = parts[j];
+          
+          // Calculate distance between particles
+          const dx = p2.x - p1.x;
+          const dy = p2.y - p1.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          
+          if (dist > 0.1 && dist < maxSpringDist) {
+            // Calculate ideal spring distance based on particle positions in blob
+            const ringDiff = Math.abs(p1.ring - p2.ring);
+            const angleDiff = Math.abs(p1.angle - p2.angle);
+            
+            // More relaxed rest distances for better deformation
+            let restDist = RADIUS * 1.5; // longer base distance
+            if (ringDiff === 0) restDist *= 0.7; // same ring - shorter
+            if (angleDiff < Math.PI / 4) restDist *= 0.8; // similar angles - shorter
+            if (ringDiff > 1) restDist *= 1.3; // different rings - much longer
+            
+            // Spring force calculation
+            const displacement = dist - restDist;
+            const force = displacement * springStrength;
+            
+            // Normalize direction
+            const fx = (dx / dist) * force;
+            const fy = (dy / dist) * force;
+            
+            // Apply spring forces
+            p1.springForceX += fx;
+            p1.springForceY += fy;
+            p2.springForceX -= fx;
+            p2.springForceY -= fy;
+            
+            // Anti-overlap force if too close
+            const minDist = (p1.r + p2.r) * 0.8;
+            if (dist < minDist) {
+              const separationForce = (minDist - dist) * 0.2;
+              const sfx = (dx / dist) * separationForce;
+              const sfy = (dy / dist) * separationForce;
+              
+              p1.springForceX -= sfx;
+              p1.springForceY -= sfy;
+              p2.springForceX += sfx;
+              p2.springForceY += sfy;
+            }
+          }
+        }
+      }
+      
+      // Apply dampening to spring forces
+      for (const p of parts) {
+        p.springForceX *= dampening;
+        p.springForceY *= dampening;
+      }
+      
+      // Third pass: update positions with spring network
+      for (const p of parts) {
+        // Add velocity for more fluid movement
+        if (!p.vx) p.vx = 0;
+        if (!p.vy) p.vy = 0;
+        
+        // Apply spring forces to velocity (not position directly)
+        p.vx += p.springForceX * 0.3;
+        p.vy += p.springForceY * 0.3;
+        
+        // Add attraction to target position (following the attractor) - weaker for more fluid movement
+        const attractForceX = (p.targetX - p.x) * 0.05;
+        const attractForceY = (p.targetY - p.y) * 0.05;
+        p.vx += attractForceX;
+        p.vy += attractForceY;
+        
+        // Apply velocity dampening for stability - less dampening for more fluid movement
+        p.vx *= 0.82;
+        p.vy *= 0.82;
+        
+        // Update position based on velocity
+        p.x += p.vx;
+        p.y += p.vy;
+        
+        // Gentle constraint to prevent particles from drifting too far
+        const maxDrift = RADIUS * 2.5;
+        const driftX = p.x - attractor.x;
+        const driftY = p.y - attractor.y;
+        const driftDist = Math.sqrt(driftX * driftX + driftY * driftY);
+        
+        if (driftDist > maxDrift) {
+          const constrainForce = (driftDist - maxDrift) * 0.1;
+          p.vx -= (driftX / driftDist) * constrainForce;
+          p.vy -= (driftY / driftDist) * constrainForce;
+        }
+
+        // Draw overlapping circles - blur will blend them
+        s.fill('#F52D34'); // bright red particles
+        s.ellipse(p.x, p.y, p.r * 2.4, p.r * 2.4);
+      }
+      
+      s.drawingContext.filter = 'none';
+      
+      
+      
+      // Draw eyes on top of the blob
+      if (currentMode === 'nest') {
+        // Sleeping - closed eyes (horizontal lines)
+        s.stroke('#1a1a1a'); // black closed eyes
+        s.strokeWeight(1.5);
+        s.line(leftEye.x - 2, leftEye.y, leftEye.x + 2, leftEye.y);
+        s.line(rightEye.x - 2, rightEye.y, rightEye.x + 2, rightEye.y);
+        s.noStroke();
+      } else if (isBlinking) {
+        // Blinking - closed eyes (horizontal lines)
+        s.stroke('#1a1a1a'); // black closed eyes
+        s.strokeWeight(1.5);
+        s.line(leftEye.x - 2, leftEye.y, leftEye.x + 2, leftEye.y);
+        s.line(rightEye.x - 2, rightEye.y, rightEye.x + 2, rightEye.y);
+        s.noStroke();
+      } else {
+        // Open eyes (normal size)
+        const eyeSize = EYE_SIZE * 2; // consistent eye size
+        s.fill('#1a1a1a'); // black eyes to match text
+        s.noStroke();
+        s.ellipse(leftEye.x, leftEye.y, eyeSize, eyeSize);
+        s.ellipse(rightEye.x, rightEye.y, eyeSize, eyeSize);
+      }
+      
+      
+      // Draw Z particles when nesting
+      if (currentMode === 'nest') {
+        s.textAlign(s.CENTER, s.CENTER);
+        s.textFont('Space Mono');
+        for (const z of zParticles) {
+          s.fill(139, 131, 120, z.life * 180); // light brown-grey with fade
+          s.textSize(z.size);
+          s.text('z', z.x, z.y);
+        }
+      }
+    };
+
+    s.windowResized = function () {
+      const documentHeight = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+      s.resizeCanvas(window.innerWidth, documentHeight);
+      ground = window.innerHeight - RADIUS - 20;
+      
+      // Update home area on resize (desktop only)
+      if (!isMobile()) {
+        setHomeAreaPosition();
+      }
+    };
+
+  }, 'blob-container');
+  </script>
+</body>
+</html>
