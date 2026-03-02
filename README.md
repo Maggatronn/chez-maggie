@@ -39,10 +39,6 @@ Visit the live website: [https://maggatronn.github.io/chez-maggie/](https://magg
 
 The website adapts to mobile devices with simplified controls and optimized performance.
 
-## 🎨 Design Philosophy
-
-This website embodies a philosophy of joyful, playful interaction between digital creatures. Rather than predatory chase dynamics, it creates a friendship playground where different personalities coexist and interact naturally.
-
 ---
 
 *PhD candidate in Media Arts and Sciences at MIT researching civic technology, participatory design, and constructive communication.*
