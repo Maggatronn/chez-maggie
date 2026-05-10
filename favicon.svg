@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <!-- Blur filter to mimic the p5.js blob effect -->
+    <filter id="blobBlur" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="1.2"/>
+    </filter>
+  </defs>
+  
+  <!-- Blob body made of overlapping circles like in p5.js -->
+  <g filter="url(#blobBlur)">
+    <!-- Main blob circles in red (#F52D34) -->
+    <circle cx="16" cy="18" r="8" fill="#F52D34" opacity="0.9"/>
+    <circle cx="14" cy="17" r="6" fill="#F52D34" opacity="0.8"/>
+    <circle cx="18" cy="17" r="6" fill="#F52D34" opacity="0.8"/>
+    <circle cx="16" cy="20" r="6" fill="#F52D34" opacity="0.8"/>
+    <circle cx="15" cy="15" r="5" fill="#F52D34" opacity="0.7"/>
+    <circle cx="17" cy="15" r="5" fill="#F52D34" opacity="0.7"/>
+    <circle cx="16" cy="19" r="7" fill="#F52D34" opacity="0.8"/>
+  </g>
+  
+  <!-- Eyes on top (no blur) -->
+  <circle cx="13" cy="14" r="1.5" fill="#1a1a1a"/>
+  <circle cx="19" cy="14" r="1.5" fill="#1a1a1a"/>
+</svg>
