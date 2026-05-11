@@ -7,7 +7,7 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Saira:wght@400;500;600;700;800;900&family=Space+Mono&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=Space+Mono&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     
@@ -16,20 +16,29 @@
        Palette: warm cream + deep brown-black ink + terracotta accent (organizing red)
     */
     :root {
-      /* Palette pulled from the photo: copper hair, dusty-rose lipstick,
-         cream-peach skin, terracotta accent. Every neutral is biased
-         toward red so nothing reads as olive/khaki. */
-      --bg: #FAE3D2;          /* warm pink-cream paper (R»G≥B) */
-      --bg-card: #FDF1E2;     /* slightly warmer card surface */
-      --ink: #1F1814;         /* deep warm brown-black */
-      --ink-body: #3D2F26;    /* warm rust-brown for body text */
-      --ink-muted: #8A6A58;   /* warm copper-brown (no olive) */
-      --rule: #E8CFB8;        /* warm peachy-tan border */
-      --accent: #B5453E;      /* terracotta - organizing red */
-      --accent-deep: #9C3B36; /* hover */
-      --copper: #C76E46;      /* warm copper (hair tone) */
-      --rose-gold: #C88D7E;   /* dusty rose / lipstick */
-      --peach: #EDC4A2;       /* cream-peach (skin highlight) */
+      /* === Dark terracotta theme ===
+         Deep warm terracotta base + warm cream text. The page reads as
+         a unified terracotta canvas (think union hall, organizing
+         pamphlet, warm dark wood) with gradient highlights adding
+         firelight-like variation. Cream-on-terracotta is AAA contrast.
+         Cream pills (active nav, Be still toggle, browser frames) keep
+         their light surface and use --ink-on-light for dark text. */
+      --bg: #88362A;             /* warm terracotta — the canvas, lifted a touch */
+      --bg-card: #FEF8E8;        /* light cream — browser frames / lifted UI */
+      --ink: #fbf1dcee;            /* warm cream — primary text on dark bg */
+      --ink-body: #F3E4C5;       /* slightly muted cream for body copy */
+      --ink-soft: #fbd5ab;       /* smoky warm gray — matches the optical
+                                    blend of the cream logos at 78% opacity
+                                    on terracotta; used for section labels
+                                    so they sit a step below body cream */
+      --ink-muted: #2e2a25;      /* further-muted cream for secondary text */
+      --ink-on-light: #2A1813;   /* dark warm brown — text on cream surfaces */
+      --rule: rgba(251, 241, 220, 0.22);  /* faint cream border on dark */
+      --accent: #FFD879;         /* warm gold — pops on dark terracotta */
+      --accent-deep: #FFC04A;    /* deeper gold for hover */
+      --copper: #C76E46;
+      --sienna: #6E3422;
+      --cream: #FBF1DC;
     }
     
     /* On desktop the body itself does NOT scroll — the page is locked at
@@ -53,6 +62,22 @@
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
+
+    /* Visited-link override.
+       Browsers enforce that the visited-state color of a link can only
+       come from an explicit :visited rule — even if a regular author rule
+       (.bio a, .now-text a, etc.) sets a different color, the UA default
+       purple/blue still bleeds through unless we set :visited explicitly.
+       This single rule keeps every visited link in the warm cream palette.
+       Higher-specificity rules (e.g. .section-nav a.is-active) still win
+       over this baseline via normal cascade, so the active-pill dark text
+       is unaffected. */
+    a:visited {
+      color: var(--ink);
+    }
+    .section-nav a.is-active:visited {
+      color: var(--ink-on-light);
+    }
     
     /* === Ambient gradient layers - drifting warm light ===
        Each layer is a viewport-sized rectangle whose canvas NEVER moves.
@@ -72,6 +97,10 @@
     @property --c3y { syntax: '<percentage>'; inherits: false; initial-value: 50%; }
     @property --c4x { syntax: '<percentage>'; inherits: false; initial-value: 78%; }
     @property --c4y { syntax: '<percentage>'; inherits: false; initial-value: 35%; }
+    @property --c5x { syntax: '<percentage>'; inherits: false; initial-value: 22%; }
+    @property --c5y { syntax: '<percentage>'; inherits: false; initial-value: 78%; }
+    @property --c5x { syntax: '<percentage>'; inherits: false; initial-value: 22%; }
+    @property --c5y { syntax: '<percentage>'; inherits: false; initial-value: 76%; }
     
     .bg-glow {
       position: fixed;
@@ -87,57 +116,88 @@
        Long, gentle fade-out (last stop at 90%) so layers always
        overlap softly through the whole viewport. */
     
-    /* COPPER (hair) — dominant warm glow */
+    /* On the dark terracotta canvas, gradients function as ambient
+       *highlights* — like firelight or sunset spotlights — rather than
+       as paint dropped on a light page. Each layer is a *lighter*
+       warm hue at modest alpha, so it adds luminance and chromatic
+       variation to specific zones while the dark base shows through
+       everywhere the gradients fade out. */
+
+    /* WARM RED — terracotta focal, bottom-right. A hotter red than
+       the base, pulling that quadrant toward "firelight red". */
     .bg-glow-1 {
       background: radial-gradient(
         circle 95vmax at var(--c1x) var(--c1y),
-        rgba(199, 110, 70, 0.62) 0%,
-        rgba(199, 110, 70, 0.32) 22%,
-        rgba(199, 110, 70, 0.12) 50%,
-        rgba(199, 110, 70, 0.03) 75%,
-        rgba(199, 110, 70, 0)    90%
+        rgba(231, 68, 32, 0.55) 0%,
+        rgba(231, 68, 35, 0.3) 22%,
+        rgba(190, 70, 50, 0.12) 50%,
+        rgba(230, 67, 38, 0.04) 75%,
+        rgba(180, 70, 50, 0)    90%
       );
       animation: drift1 42s ease-in-out infinite;
     }
-    
-    /* CREAM-PEACH (skin highlight) — luminous & soft */
+
+    /* WARM CREAM SUNLIGHT — luminous warm patch, top-left. The most
+       visible "lit" zone on the page; reads like late-afternoon sun
+       cutting across the dark canvas. */
     .bg-glow-2 {
       background: radial-gradient(
         circle 95vmax at var(--c2x) var(--c2y),
-        rgba(237, 196, 162, 0.58) 0%,
-        rgba(237, 196, 162, 0.28) 25%,
-        rgba(237, 196, 162, 0.10) 55%,
-        rgba(237, 196, 162, 0.02) 78%,
-        rgba(237, 196, 162, 0)    90%
+        rgba(255, 215, 145, 0.599) 0%,
+        rgba(250, 200, 125, 0.364) 25%,
+        rgba(245, 215, 155, 0.28) 55%,
+        rgba(245, 215, 155, 0.206) 78%,
+        rgba(245, 215, 155, 0)    90%
       );
       animation: drift2 58s ease-in-out infinite;
     }
-    
-    /* ROSE GOLD (lipstick / pink) — adds the cool-warm pink balance */
+
+    /* WARM GOLD — earthy golden highlight drifting through center.
+       Replaces the old dark-sienna layer (which would have vanished
+       against the dark base) with a complementary warm-gold lift. */
     .bg-glow-3 {
       background: radial-gradient(
         circle 95vmax at var(--c3x) var(--c3y),
-        rgba(200, 141, 126, 0.46) 0%,
-        rgba(200, 141, 126, 0.20) 28%,
-        rgba(200, 141, 126, 0.07) 58%,
-        rgba(200, 141, 126, 0.02) 80%,
-        rgba(200, 141, 126, 0)    90%
+        rgba(255, 180, 100, 0.46) 0%,
+        rgba(255, 180, 100, 0.42) 28%,
+        rgba(255, 180, 100, 0.231) 58%,
+        rgba(255, 180, 100, 0.01) 80%,
+        rgba(255, 180, 100, 0)    90%
       );
       animation: drift3 80s ease-in-out infinite;
     }
-    
-    /* TERRACOTTA (accent / organizing red) — saturated focal warmth */
+
+    /* COPPER — warm orange highlight, upper-right. */
     .bg-glow-4 {
       background: radial-gradient(
         circle 95vmax at var(--c4x) var(--c4y),
-        rgba(181, 69, 62, 0.28) 0%,
-        rgba(181, 69, 62, 0.13) 26%,
-        rgba(181, 69, 62, 0.05) 55%,
-        rgba(181, 69, 62, 0.01) 78%,
-        rgba(181, 69, 62, 0)    90%
+        rgba(245, 140, 70, 0.40) 0%,
+        rgba(235, 135, 75, 0.22) 26%,
+        rgba(225, 135, 85, 0.09) 55%,
+        rgba(225, 135, 85, 0.02) 78%,
+        rgba(225, 135, 85, 0)    90%
       );
       animation: drift4 68s ease-in-out infinite;
     }
+
+    /* BURNT AMBER — bottom-left warm zone, completes the firelight
+       quadrant balance. */
+    .bg-glow-5 {
+      background: radial-gradient(
+        circle 95vmax at var(--c5x) var(--c5y),
+        rgba(230, 115, 55, 0.42) 0%,
+        rgba(220, 110, 60, 0.22) 25%,
+        rgba(210, 110, 65, 0.09) 55%,
+        rgba(210, 110, 65, 0.02) 78%,
+        rgba(210, 110, 65, 0)    90%
+      );
+      animation: drift5 52s ease-in-out infinite;
+    }
+
+    /* Legacy cream scrim from the light-theme era. Now hidden — on the
+       dark theme it would mute the gradients into uniform mud and crush
+       the firelight contrast we just built. */
+    .bg-scrim { display: none; }
     
     /* Drift the *center point* of each gradient — canvas itself never moves.
        Each layer wanders within its own region of the viewport so they
@@ -162,10 +222,15 @@
       40%      { --c4x: 66%; --c4y: 48%; }
       75%      { --c4x: 86%; --c4y: 24%; }
     }
+    @keyframes drift5 {
+      0%, 100% { --c5x: 22%; --c5y: 76%; }
+      35%      { --c5x: 14%; --c5y: 64%; }
+      70%      { --c5x: 32%; --c5y: 84%; }
+    }
     
     /* Respect reduced-motion preference */
     @media (prefers-reduced-motion: reduce) {
-      .bg-glow-1, .bg-glow-2, .bg-glow-3, .bg-glow-4 { animation: none; }
+      .bg-glow-1, .bg-glow-2, .bg-glow-3, .bg-glow-4, .bg-glow-5 { animation: none; }
     }
     
     /* === Texture overlay — single static fuzz layer ===
@@ -181,7 +246,7 @@
       z-index: 1; /* above bg-glow (z:0), below content (z:2) */
       background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='turbulence' baseFrequency='0.95' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
       background-size: 180px 180px;
-      opacity: 0.22;
+      /* opacity: 0.30; */
       mix-blend-mode: overlay;
     }
 
@@ -195,11 +260,12 @@
       gap: 80px;
       max-width: 1280px;
       margin: 0 auto;
-      /* Full viewport height. No bottom padding here — the right column
-         handles its own bottom breathing room as part of its scroll
-         content (since it's the only thing that scrolls). */
+      /* No top padding here. Each column owns its own top spacing so the
+         right column can start at viewport y=0 — letting its sticky nav
+         extend all the way to the top of the screen, covering any
+         content that would otherwise be visible scrolling past it. */
       height: 100vh;
-      padding: 88px 48px 0;
+      padding: 0 48px;
       box-sizing: border-box;
       position: relative;
       z-index: 2;
@@ -207,33 +273,64 @@
     }
     
     .layout-left {
-      /* Static and solid — never moves, never scrolls. The page itself
-         is locked (html/body overflow: hidden) and this column has no
-         internal overflow, so it just sits there as a fixed name-plate
-         while the right column scrolls beside it. */
+      /* Static name-plate alongside the scrolling right column. Owns
+         its own top padding (since .layout's top padding is 0).
+
+         overflow-y: auto + max-height: 100vh means: at normal zoom the
+         column fits comfortably in the viewport and shows no scrollbar
+         (no internal overflow); when zoomed in or on short viewports
+         it scrolls internally so the bottom of the column — email,
+         LinkedIn, scholar links — stays reachable. Same thin styled
+         scrollbar as the right column for visual consistency. */
       align-self: start;
       display: flex;
       flex-direction: column;
       gap: 20px;
-      max-height: calc(100vh - 88px);
-      overflow: hidden;
+      padding-top: 88px;
+      padding-bottom: 32px;
+      max-height: 100vh;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(251, 241, 220, 0.20) transparent;
+      scrollbar-gutter: stable;
+    }
+    .layout-left::-webkit-scrollbar { width: 8px; }
+    .layout-left::-webkit-scrollbar-track { background: transparent; }
+    .layout-left::-webkit-scrollbar-thumb {
+      background: rgba(251, 241, 220, 0.20);
+      border-radius: 4px;
+    }
+    .layout-left::-webkit-scrollbar-thumb:hover {
+      background: rgba(251, 241, 220, 0.36);
     }
     
     /* Hero row: small avatar-sized photo paired with the H1 as an inline
-       name-plate. Vertically centered so the H1 can grow naturally without
-       dragging the photo with it. */
+       name-plate. Bottom-aligned so the photo sits at the baseline of the
+       big H1 — visually it reads as a small "bug" perched at the bottom
+       of the name rather than a portrait flanking it.
+       Tiny upward nudge (translateY) keeps the photo's actual bottom
+       edge level with the H1's optical baseline, which sits above the
+       glyph descender. */
     .hero-row {
       display: flex;
-      align-items: center;
+      align-items: flex-end;
       gap: 14px;
+    }
+    .hero-row .hero-photo {
+      transform: translateY(-0.18em);
     }
     .hero-row h1 {
       flex: 1 1 auto;
       margin: 0;
     }
     
-    /* H1: poster-scale, tuned for the wider sticky column. Reduced again
-       slightly so a 2-line "Maggie / Hughes." takes less vertical room. */
+    /* H1: poster-scale, tuned for the wider sticky column.
+       Typographic differentiation: "Maggie" is set in regular italic
+       (400 italic) and "Hughes" in extra-black upright (900). Two
+       axes of contrast — weight and style — so the given name reads
+       as the soft personal-side and the family name as the grounded
+       anchor. Same size, same color. */
     h1 {
       font-family: 'Saira', sans-serif;
       font-size: clamp(2.4rem, 4.2vw, 3.4rem);
@@ -243,6 +340,10 @@
       line-height: 0.92;
       margin: 0;
     }
+    h1 .given  { font-weight: 400; font-style: italic; }
+    h1 .family { font-weight: 900; font-style: normal; }
+    /* Plain typographic period — quiet punctuation at the end of the name. */
+    .period-anchor { color: var(--ink); }
     
     .hero-descriptor {
       font-family: 'Saira', sans-serif;
@@ -278,10 +379,10 @@
        (Currently, Selected affiliations, Teaching & service, etc.). */
     .kicker {
       font-family: 'Space Mono', monospace;
-      font-size: 0.65rem;
+      font-size: 0.8rem;
       text-transform: uppercase;
       letter-spacing: 0.12em;
-      color: var(--ink-muted);
+      color: var(--ink-soft);
       margin: 0;
     }
     
@@ -350,9 +451,9 @@
       row-gap: 12px;
     }
     .affiliations-row img {
-      height: 28px;
+      height: 36px;
       width: auto;
-      max-width: 130px;
+      max-width: 160px;
       object-fit: contain;
       filter: brightness(0);
       opacity: 0.5;
@@ -360,6 +461,12 @@
     }
     .affiliations-row img:hover {
       opacity: 0.78;
+    }
+    /* NYC logo deliberately larger — the most directly relevant
+       institutional credit for civic-tech / city-government audiences. */
+    .affiliations-row img.logo-lg {
+      height: 80px;
+      max-width: 240px;
     }
     
     /* Contact strip — small monospace links at the bottom of the sticky column.
@@ -391,7 +498,7 @@
        height to match the H1, then aspect-ratio derives its width. */
     .hero-photo {
       flex: 0 0 auto;
-      width: 96px;
+      width: 150px;
       aspect-ratio: 1;
       position: relative;
       display: flex;
@@ -404,7 +511,7 @@
       /* Slightly tighter halo for the inline name-plate so it doesn't
          bleed onto the H1 letters to the right. */
       inset: -8% -4% -8% -10%;
-      background:
+      /* background:
         radial-gradient(
           circle at 50% 38%,
           rgba(199, 110, 70, 0.32) 0%,
@@ -416,7 +523,7 @@
           rgba(200, 141, 126, 0.22) 0%,
           rgba(200, 141, 126, 0.08) 40%,
           rgba(200, 141, 126, 0)    72%
-        );
+        ); */
       z-index: 0;
       pointer-events: none;
     }
@@ -451,11 +558,6 @@
     }
     nav a:hover { color: var(--accent); border-color: var(--accent); }
     
-    /* The typed period at the end of "Maggie Hughes." Just punctuation now —
-       the floating dots are no longer anchored to it. */
-    .period-anchor {
-      color: var(--ink);
-    }
     
     /* === Floating dots ===
        Seven small marks drifting around the page in their own loose loops.
@@ -510,15 +612,17 @@
        image + meta + title + description + links, lots of whitespace. */
     .layout-right {
       min-width: 0; /* allow grid track to shrink images correctly */
-      /* The page's only scroll container. Bounded to viewport height
-         minus the top padding of .layout, with internal padding-bottom
-         to give the last project/publication breathing room at the end
-         of the scroll. */
-      height: calc(100vh - 88px);
+      /* The page's only scroll container. padding-top matches the
+         left column's padding-top (88px) so the first section's h2
+         starts at the same viewport y-coordinate as the H1 — works
+         even at scrollTop=0, which scroll-margin-top alone can't
+         achieve for the first section. */
+      height: 100vh;
       overflow-y: auto;
+      padding-top: 88px;
       padding-bottom: 120px;
       scrollbar-width: thin;
-      scrollbar-color: rgba(31, 24, 20, 0.18) transparent;
+      scrollbar-color: rgba(251, 241, 220, 0.20) transparent;
       scrollbar-gutter: stable;
     }
     .layout-right::-webkit-scrollbar {
@@ -528,11 +632,11 @@
       background: transparent;
     }
     .layout-right::-webkit-scrollbar-thumb {
-      background: rgba(31, 24, 20, 0.18);
+      background: rgba(251, 241, 220, 0.20);
       border-radius: 4px;
     }
     .layout-right::-webkit-scrollbar-thumb:hover {
-      background: rgba(31, 24, 20, 0.32);
+      background: rgba(251, 241, 220, 0.36);
     }
     
     .projects-header {
@@ -541,17 +645,30 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.20em;
-      color: var(--ink);
+      color: var(--ink-soft); /* smoky warm gray — matches affiliation-logo tone */
       margin-bottom: 48px;
       display: flex;
       align-items: center;
       gap: 24px;
     }
+    /* Header rule terminates in a small ink dot — third place the
+       "bug" dot motif appears statically (after the H1 period and the
+       nav leading-dots), tying the editorial system together. The rule
+       runs along center; the dot sits at the right end. */
     .projects-header::after {
       content: '';
       flex: 1;
-      height: 1px;
-      background: var(--rule);
+      height: 8px;
+      background-image:
+        radial-gradient(circle 3px at center, var(--ink) 0 3px, transparent 3.5px),
+        linear-gradient(to right, var(--rule), var(--rule));
+      background-size:
+        8px 8px,
+        calc(100% - 14px) 1px;
+      background-position:
+        right center,
+        left center;
+      background-repeat: no-repeat;
     }
     
     .projects-grid {
@@ -583,9 +700,33 @@
       height: 100%;
       object-fit: cover;
       display: block;
-      transition: transform 0.6s ease;
+      /* Subtle warm color-grade so community photos shot under cool indoor
+         light (fluorescents, daylight) cohere with the terracotta canvas
+         instead of reading as a cool intrusion. Sepia adds a warm wash,
+         saturate trims the magenta-leaning cool tones. */
+      filter: saturate(0.92) sepia(0.12);
+      transition: transform 0.6s ease, filter 0.4s ease;
     }
-    .project:hover .project-image img { transform: scale(1.025); }
+    .project:hover .project-image img {
+      transform: scale(1.025);
+      filter: saturate(1) sepia(0); /* return to true color on hover —
+                                       lets the viewer "see clearly" */
+    }
+    /* A faint terracotta multiply wash anchors photos to the page palette.
+       Sits above the photo, below any overlay UI. Kept very low alpha so
+       individual photos still feel like themselves, not heavily tinted. */
+    .project-image::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(136, 54, 42, 0.10);
+      mix-blend-mode: multiply;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+    .project:hover .project-image::after {
+      opacity: 0; /* matches the hover-to-true-color of the photo above */
+    }
     
     /* Earthy cohesive palette - kept as fallbacks for tiles without photos */
     .project-image.tone-blue       { background: linear-gradient(135deg, #3A5470 0%, #8FA5BD 100%); }
@@ -722,17 +863,28 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.18em;
-      color: var(--ink);
+      color: var(--ink-soft); /* smoky warm gray — matches affiliation-logo tone */
       margin: 0 0 18px 0;
       display: flex;
       align-items: center;
       gap: 16px;
     }
+    /* Same dot-terminated rule as .projects-header, sized smaller to
+       match the subsection-level header weight. */
     .pub-section-header::after {
       content: '';
       flex: 1;
-      height: 1px;
-      background: var(--rule);
+      height: 6px;
+      background-image:
+        radial-gradient(circle 2.5px at center, var(--ink) 0 2.5px, transparent 3px),
+        linear-gradient(to right, var(--rule), var(--rule));
+      background-size:
+        6px 6px,
+        calc(100% - 12px) 1px;
+      background-position:
+        right center,
+        left center;
+      background-repeat: no-repeat;
     }
     .publications-list {
       list-style: none;
@@ -756,7 +908,14 @@
       color: var(--ink-muted);
       font-style: italic;
     }
-    .pub-link {
+    /* Inline "Paper" / "Site" links on publication entries.
+       Selector covers both patterns used in the markup:
+         - .pub-link (singular class on <a>)
+         - .pub-links a (anchor inside the .pub-links wrapper div)
+       so every Paper link reads as a small caps-styled chip with a
+       terracotta underline — not a default browser blue link. */
+    .pub-link,
+    .pub-links a {
       font-family: 'Space Mono', monospace;
       font-size: 0.65rem;
       text-transform: uppercase;
@@ -768,9 +927,13 @@
       white-space: nowrap;
       transition: color 0.15s, border-color 0.15s;
     }
-    .pub-link:hover {
+    .pub-link:hover,
+    .pub-links a:hover {
       color: var(--accent-deep);
       border-color: var(--accent-deep);
+    }
+    .pub-links {
+      margin-top: 6px;
     }
     .pub-status {
       font-family: 'Space Mono', monospace;
@@ -782,7 +945,253 @@
       margin-left: 6px;
       white-space: nowrap;
     }
-    
+
+    /* === Section nav (in the left column) ===
+       Horizontal row of three small pills sitting above the contact
+       links. Quiet mostly-transparent default; active pill is filled
+       solid cream so the current section reads at a glance. Active
+       state is driven by an IntersectionObserver watching the three
+       right-column sections. */
+    .section-nav {
+      margin-top: 4px;
+    }
+    .section-nav ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .section-nav a {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 12px;
+      border-radius: 999px;
+      color: var(--ink); /* cream on dark/transparent pill */
+      text-decoration: none;
+      background: rgba(254, 248, 232, 0.10);
+      border: 1px solid rgba(251, 241, 220, 0.22);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      transition: background 0.18s ease,
+                  border-color 0.18s ease,
+                  color 0.18s ease;
+      cursor: pointer;
+    }
+    .section-nav a:hover {
+      background: rgba(254, 248, 232, 0.22);
+      border-color: rgba(251, 241, 220, 0.40);
+    }
+    /* Active pill is filled solid cream so the current section reads at
+       a glance — text flips to dark so it's legible on cream. */
+    .section-nav a.is-active {
+      background: rgba(254, 248, 232, 0.96);
+      border-color: rgba(254, 248, 232, 0.96);
+      color: var(--ink-on-light);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
+    }
+
+    /* === Floating "Be still" motion toggle ===
+       Pinned to viewport bottom-right as a small standalone pill.
+       It's a viewport-level control (pause the cursor-trail animation)
+       not navigation, so it lives outside the editorial reading flow.
+       Frosted cream fill + thin border for soft visibility against any
+       background; switches to a faint terracotta wash when pressed. */
+    .motion-toggle {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 6;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 9px 16px;
+      border-radius: 999px;
+      color: var(--ink-on-light); /* dark text on cream pill */
+      background: rgba(254, 248, 232, 0.86);
+      border: 1px solid rgba(254, 248, 232, 0.50);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: color 0.18s ease,
+                  background 0.18s ease,
+                  border-color 0.18s ease,
+                  transform 0.15s ease,
+                  box-shadow 0.15s ease;
+    }
+    .motion-toggle::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--ink-on-light);
+      opacity: 0.55;
+      transition: background 0.18s ease,
+                  transform 0.2s ease,
+                  opacity 0.18s ease;
+    }
+    .motion-toggle:hover {
+      background: rgba(254, 248, 232, 0.96);
+      border-color: rgba(254, 248, 232, 0.70);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.26);
+    }
+    .motion-toggle:hover::before {
+      opacity: 0.85;
+    }
+    /* Pressed (bugs are still): pill tinted with the warm gold accent
+       to signal "this state is engaged". Dark text stays for legibility
+       on the still-light pill. */
+    .motion-toggle[aria-pressed="true"] {
+      background: rgba(255, 216, 121, 0.55);
+      border-color: rgba(255, 216, 121, 0.85);
+      color: var(--ink-on-light);
+    }
+    .motion-toggle[aria-pressed="true"]::before {
+      background: #B07A1E;
+      opacity: 1;
+      transform: scale(1.15);
+    }
+
+    /* Smooth anchored scrolling — and enough top clearance so anchor
+       targets land below the sticky nav instead of behind it. */
+    .layout-right { scroll-behavior: smooth; }
+    /* Anchor-target offset is matched to the left column's top padding
+       (88px), so when a section is jumped to, its h2 lands at the same
+       vertical position as the H1 ("Maggie Hughes") in the left panel.
+       The two reading columns visually align at the top edge. */
+    #works, #technologies, #publications {
+      scroll-margin-top: 88px;
+    }
+
+    /* === Technologies section: product-oriented tiles ===
+       Same underlying work as Selected Work, but reframed: each entry
+       leads with a screenshot of the actual tool (inside a small
+       browser-window chrome) so consulting prospects and government
+       reviewers can see a deployable product, not just a research
+       narrative. */
+    .technologies-section {
+      margin-top: 96px;
+    }
+    .tech-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 80px;
+    }
+    .tech {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .tech-tagline {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--ink-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin: 0 0 6px;
+    }
+    .tech h3 {
+      font-family: 'Saira', sans-serif;
+      font-size: clamp(1.4rem, 2vw, 1.85rem);
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      line-height: 1.1;
+      margin: 0 0 10px;
+      color: var(--ink);
+    }
+    .tech-desc {
+      font-size: 0.98rem;
+      line-height: 1.55;
+      color: var(--ink-body);
+      margin: 0 0 8px;
+      max-width: 640px;
+    }
+    .tech-caption {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--ink-muted);
+      letter-spacing: 0.04em;
+      margin: 0 0 12px;
+    }
+
+    /* Browser-window chrome around tool screenshots. Mac-style traffic
+       lights via a single ::after with two box-shadow stamps (red,
+       yellow, green at 14/30/46px), and a soft cream-tan top bar via
+       ::before. The whole frame is a card with rounded corners + subtle
+       shadow so the screenshot reads as a tiny rendered app rather than
+       a raw asset dropped into the page.
+
+       max-width caps the image so it sits at "product card" size rather
+       than full column-bleed; the wrapper stays left-aligned with the
+       rest of the tile content. */
+    .tech-frame {
+      position: relative;
+      max-width: 700px;
+      padding-top: 26px;
+      background: var(--bg-card);
+      border-radius: 10px;
+      border: 1px solid rgba(31, 24, 20, 0.12);
+      box-shadow: 0 10px 28px rgba(31, 24, 20, 0.10),
+                  0 2px 6px rgba(31, 24, 20, 0.05);
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+    .tech-frame::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 26px;
+      background: linear-gradient(to bottom, #f1e2c8, #e6d2b3);
+      border-bottom: 1px solid rgba(31, 24, 20, 0.10);
+    }
+    .tech-frame::after {
+      content: '';
+      position: absolute;
+      top: 9px;
+      left: 14px;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #E16D5F;
+      box-shadow:
+        16px 0 0 #E8B544,
+        32px 0 0 #6BB05F;
+    }
+    .tech-frame img {
+      display: block;
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+    }
+
+    /* Two-up row for V2V's twin deployments (Jamaica + WPR). Each
+       screenshot gets its own browser frame, sized down so they fit
+       side-by-side in the right column. */
+    .tech-image-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      max-width: 720px;
+      margin-bottom: 6px;
+    }
+    .tech-image-row .tech-frame {
+      max-width: none;
+      margin-bottom: 0;
+    }
+
     /* === Responsive ===
        Below 960px: stack the columns, restore normal page scroll (so the
        whole page scrolls again — no internal scroll container), photo at
@@ -802,6 +1211,9 @@
         max-height: none;
         overflow: visible;
         gap: 28px;
+        padding-top: 0; /* layout handles top spacing on mobile */
+        padding-bottom: 0;
+        scrollbar-gutter: auto;
       }
       .layout-right {
         height: auto;
@@ -809,6 +1221,17 @@
         padding-bottom: 0;
         scrollbar-gutter: auto;
       }
+      /* Mobile: floating "Be still" toggle is more cramped on small
+         screens, so make it smaller and tuck it closer to the corner. */
+      .motion-toggle {
+        bottom: 16px;
+        right: 16px;
+        padding: 7px 12px;
+        font-size: 0.6rem;
+      }
+      .tech-image-row { grid-template-columns: 1fr; }
+      .tech-frame { max-width: 100%; }
+      .technologies-section { margin-top: 64px; }
       .hero-row {
         flex-direction: column;
         /* On mobile the photo + name read as a centered name-plate at
@@ -821,7 +1244,7 @@
       }
       .hero-photo {
         width: 250px;
-        aspect-ratio: 1;
+        aspect-ratio: 1.5;
       }
       .projects-grid {
         gap: 64px;
@@ -846,7 +1269,12 @@
   <div class="bg-glow bg-glow-2"></div>
   <div class="bg-glow bg-glow-3"></div>
   <div class="bg-glow bg-glow-4"></div>
-  
+  <div class="bg-glow bg-glow-5"></div>
+
+  <!-- Subtle cream scrim above the gradients to keep body text legible
+       even where multiple saturated layers pile up. See .bg-scrim CSS. -->
+  <div class="bg-scrim"></div>
+
   <!-- Texture overlay: static white-noise fuzz over the gradient layer -->
   <div class="grain"></div>
   
@@ -858,49 +1286,58 @@
         <div class="hero-photo">
           <img src="headshot%201.svg" alt="Maggie Hughes" />
         </div>
-        <h1>Maggie Hughes<span class="period-anchor" aria-hidden="true"></span></h1>
+        <h1><span class="given">Maggie</span> <span class="family">Hughes</span><span class="period-anchor" aria-hidden="true">.</span></h1>
       </div>
       
       <p class="hero-descriptor">
-        Civic technologist, organizer, and product lead with eight years building participatory democracy infrastructure. PhD candidate at MIT Media Lab.
+        Civic technologist, organizer, and product lead. PhD candidate at MIT Media Lab, advised by <a href="https://www.media.mit.edu/people/dkroy/overview/" target="_blank">Deb Roy</a>.
       </p>
-      
+
       <div class="now-block">
         <p class="kicker">Currently</p>
         <p class="now-text">
-          Co-founder of <a href="https://www.convoca.org" target="convoca.org">Convoca</a> — the civic technology organization building V2V and LumoViz.
+          Co-founder of <a href="https://www.convoca.org" target="convoca.org">Convoca</a> — building V2V and LumoViz with city planners, grassroots federations, and research labs.
         </p>
       </div>
-      
+
       <div class="bio">
         <p>
-          I build organizing technology — production sociotechnical systems for participatory democracy and co-governance. My practice spans ethnographic research, co-design, and full development lifecycle leadership, with grassroots federations, city planning departments, and research labs.
+          Most civic technology is built for transactional engagement — broadcast, extract, summarize, move on. I build for sustained relationship: systems that make the relational infrastructure of civic life legible, so engagement compounds into capacity and power rather than dissipating after each interaction.
         </p>
         <p>
-          Advised by <a href="https://www.media.mit.edu/people/dkroy/overview/" target="_blank">Deb Roy</a> at MIT Media Lab, with dissertation committee mentors <a href="https://www.linkedin.com/in/ericjgordon" target="_blank">Eric Gordon</a> and <a href="https://ledantec.net/" target="_blank">Christopher Le Dantec</a>. Microsoft Sociotechnical Systems PhD Fellow. <a href="https://metagov.org/" target="_blank">Metagov</a> 2025 Interoperability Cohort grant. MIT Prize for Open Data, Honorable Mention. Affiliate of the Practicing Democracy Project (Harvard Kennedy School, with <a href="https://www.linkedin.com/in/marshall-ganz-129a5617/" target="_blank">Marshall Ganz</a>) and the <a href="https://dataplusfeminism.mit.edu/" target="_blank">Data + Feminism Lab</a> (MIT, with <a href="https://www.kanarinka.com/" target="_blank">Catherine D'Ignazio</a>).
+          Microsoft Sociotechnical Systems PhD Fellow. <a href="https://metagov.org/" target="_blank">Metagov</a> 2025 Interoperability grant. MIT Prize for Open Data, Honorable Mention. Affiliated with Harvard's Practicing Democracy Project (with <a href="https://www.linkedin.com/in/marshall-ganz-129a5617/" target="_blank">Marshall Ganz</a>) and MIT's <a href="https://dataplusfeminism.mit.edu/" target="_blank">Data + Feminism Lab</a>.
         </p>
       </div>
-      
+
       <div class="experience">
         <p class="kicker">Teaching &amp; Service</p>
         <ul class="experience-list">
-          <li>Teaching Fellow, Community Organizing — Harvard Kennedy School, with Marshall Ganz</li>
-          <li>Organizing committee and Chief Steward — MIT Graduate Student Union</li>
+          <li>Teaching Fellow, Community Organizing — Harvard Kennedy School (Marshall Ganz)</li>
+          <li>Chief Steward — MIT Graduate Student Union</li>
         </ul>
       </div>
       
       <div class="affiliations">
         <p class="kicker">Selected Affiliations</p>
         <div class="affiliations-row">
-          <img src="mit-ccc.png" alt="MIT Center for Constructive Communication" />
-          <img src="media-lab.png" alt="MIT Media Lab" />
-          <img src="nycplanning.png" alt="NYC Department of City Planning" />
-          <img src="harvard.svg" alt="Harvard Kennedy School" />
+          <img class="logo-lg" src="nycplanning.png" alt="NYC Department of City Planning" />
           <img src="metagov.png" alt="Metagov" />
-          <img src="microsoft.png" alt="Microsoft" />
         </div>
       </div>
       
+      <!-- Section nav lives in the static left column (not the scrolling
+           right column) so it never has work-content sliding past it.
+           Active state is set by an IntersectionObserver watching the
+           three sections on the right. Short single-word labels keep
+           the row visually quiet next to the H1. -->
+      <nav class="section-nav" aria-label="Sections">
+        <ul>
+          <li><a href="#works">Work</a></li>
+          <li><a href="#technologies">Tech</a></li>
+          <li><a href="#publications">Papers</a></li>
+        </ul>
+      </nav>
+
       <div class="contact">
         <a href="mailto:mhughes4@media.mit.edu">Email</a>
         <a href="https://linkedin.com/in/maggie-a-hughes" target="_blank" rel="noopener">LinkedIn</a>
@@ -908,9 +1345,11 @@
         <a href="https://github.com/maggatronn/">Github</a>
       </div>
     </aside>
-    
+
     <!-- RIGHT: scrolling work feed -->
     <section class="layout-right">
+
+      <section id="works">
       <h2 class="projects-header">Selected Work</h2>
       
       <div class="projects-grid">
@@ -1026,12 +1465,106 @@
         </article>
         
       </div>
+      </section>
+      <!-- /#works -->
+
+      <!-- Technologies: product-oriented showcase. Same underlying work as
+           Selected Work but reframed as buildable tools — for consulting
+           prospects and government reviewers who need to see deployable
+           tech, not just research narratives. -->
+      <section id="technologies" class="technologies-section">
+        <h2 class="projects-header">Technologies</h2>
+
+        <div class="tech-grid">
+
+          <article class="tech">
+            <div class="tech-image-row">
+              <div class="tech-frame">
+                <img src="jamaicascreen.png" alt="V2V Jamaica Neighborhood Plan deployment" loading="lazy" />
+              </div>
+              <div class="tech-frame">
+                <img src="wprscreen.png" alt="V2V White Plains Road deployment" loading="lazy" />
+              </div>
+            </div>
+            <div class="tech-body">
+              <p class="tech-tagline">Civic decision-making platform</p>
+              <h3>Voice to Vision</h3>
+              <p class="tech-desc">
+                A production sociotechnical platform that turns community voice into living infrastructure for neighborhood planning. Multilingual storytelling, geospatial map of lived experience, and a transparent "vision" layer that shows community members how their input is being used.
+              </p>
+              <p class="tech-caption">Deployed with NYC Department of City Planning — Jamaica (2024) · White Plains Road (2025)</p>
+              <div class="project-links">
+                <a class="link-paper" href="https://arxiv.org/abs/2505.14853" target="_blank">Paper</a>
+                <span class="sep">·</span>
+                <a class="link-site" href="https://v2v-jamaicaplan.ccc-mit.org/" target="_blank">Jamaica</a>
+                <span class="sep">·</span>
+                <a class="link-site" href="https://v2v-white-plains-road-plan.ccc-mit.org/?section=intro" target="_blank">White Plains Road</a>
+              </div>
+            </div>
+          </article>
+
+          <article class="tech">
+            <div class="tech-frame">
+              <img src="lumovizscreen.png" alt="LumoViz relational organizing data platform" loading="lazy" />
+            </div>
+            <div class="tech-body">
+              <p class="tech-tagline">Relational organizing data platform</p>
+              <h3>LumoViz</h3>
+              <p class="tech-desc">
+                Production data infrastructure for grassroots organizing federations — relational mapping, conversation tracking, and team-based campaigning. Co-designed and deployed with the Carolina Federation over three years; supports 20+ practitioners across North Carolina.
+              </p>
+              <div class="project-links">
+                <a class="link-paper" href="https://dl.acm.org/doi/10.1145/3462204.3481727" target="_blank">CSCW 2021</a>
+                <span class="sep">·</span>
+                <span class="forthcoming">GROUP 2027 (under review)</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="tech">
+            <div class="tech-frame">
+              <img src="Conversationscreen.png" alt="Conversation Dynamics analysis tool" loading="lazy" />
+            </div>
+            <div class="tech-body">
+              <p class="tech-tagline">Measurement tools for civic dialogue</p>
+              <h3>Conversation Dynamics</h3>
+              <p class="tech-desc">
+                An open analysis environment for facilitated conversations — speaker timelines, thread depth, responsivity metrics, and turn-taking networks. Used by researchers and practitioners studying constructive communication in deliberative settings.
+              </p>
+              <div class="project-links">
+                <a class="link-paper" href="https://aclanthology.org/2025.emnlp-main.1798/" target="_blank">EMNLP 2025</a>
+                <span class="sep">·</span>
+                <a class="link-paper" href="https://dl.acm.org/doi/10.1145/3656156.3663720" target="_blank">DIS 2024</a>
+                <span class="sep">·</span>
+                <a class="link-site" href="https://maggatronn.github.io/relational_conversation_dynamics/" target="_blank">Demo</a>
+              </div>
+            </div>
+          </article>
+
+          <article class="tech">
+            <div class="tech-frame">
+              <img src="Keeper.png" alt="Keeper synchronous facilitated conversation environment" loading="lazy" />
+            </div>
+            <div class="tech-body">
+              <p class="tech-tagline">Facilitated conversation environment</p>
+              <h3>Keeper</h3>
+              <p class="tech-desc">
+                A synchronous online conversation environment informed by in-person facilitation practices — turn-taking queue, shared guidelines, hand-raising, and consent built into the room itself. The foundational tool behind this line of work.
+              </p>
+              <div class="project-links">
+                <a class="link-paper" href="https://dl.acm.org/doi/10.1145/3406865.3418344" target="_blank">CSCW 2020</a>
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </section>
 
       <!-- Publications: full CV-style block for academic / research audiences.
            Six categories: Theses, Publications (peer-reviewed full papers),
            Under Review, In Development, Workshops, Short Papers.
            Margaret Hughes bolded throughout; * indicates equal contribution. -->
-      <section class="publications">
+      <section id="publications" class="publications">
         <h2 class="projects-header">Publications</h2>
 
         <div class="pub-section">
@@ -1223,6 +1756,18 @@
     </section>
   </main>
 
+  <!-- Floating motion toggle. Pinned to viewport bottom-right as a
+       small standalone control — separated from the section nav since
+       it's a viewport-level interaction (pause cursor-trail animation),
+       not navigation. -->
+  <button
+    type="button"
+    class="motion-toggle"
+    aria-pressed="false"
+    aria-label="Pause floating dot animation">
+    <span class="motion-toggle-label">Be still</span>
+  </button>
+
   <script>
   // === Floating dots ===
   // Seven independent "trails" drift around the viewport. Each trail is a
@@ -1307,6 +1852,18 @@
     const RELOCATE_MAX_MS = 18000;
     const RELOCATE_RX_MIN = 50;
     const RELOCATE_RX_MAX = 110;
+
+    // === Be-still pause / resume fade ===
+    // When the user toggles "Be still", we don't freeze the bugs instantly —
+    // we ramp the lead-dot lerp coefficient down to 0 over PAUSE_FADE_MS so
+    // the lead decelerates smoothly into its current wander target. The
+    // chain dots keep their own per-dot lerps active throughout, so they
+    // naturally catch up to the lead as it slows.
+    //
+    // RESUME_FADE_MS ramps k back up on "Wake up" so the bugs ease into
+    // motion rather than snapping awake.
+    const PAUSE_FADE_MS  = 1100;
+    const RESUME_FADE_MS = 700;
 
     const container = document.createElement('div');
     container.className = 'cursor-trail';
@@ -1412,6 +1969,67 @@
       mouseSeen = true;
     }, { passive: true });
 
+    // === "Be still" toggle ===
+    // The tick loop never short-circuits — it always runs. When paused,
+    // we freeze the wander target (no new motion is pushed in) and ramp
+    // the lead-dot lerp coefficient down to 0 over PAUSE_FADE_MS.
+    // Because the lead is still lerping toward its frozen target with a
+    // decaying k, it decelerates smoothly into rest instead of snapping.
+    // The chain dots keep their own per-dot lerps active throughout, so
+    // they catch up to the lead on their own as the lead slows.
+    let paused = false;
+    let pauseStartedAt  = 0;  // timestamp of last paused-flip (0 = inactive)
+    let resumeStartedAt = 0;  // timestamp of last resumed-flip (0 = inactive)
+    const motionToggle = document.querySelector('.motion-toggle');
+    const motionToggleLabel = motionToggle
+      ? motionToggle.querySelector('.motion-toggle-label')
+      : null;
+    if (motionToggle) {
+      motionToggle.addEventListener('click', () => {
+        paused = !paused;
+        const now = performance.now();
+        motionToggle.setAttribute('aria-pressed', String(paused));
+        if (motionToggleLabel) {
+          motionToggleLabel.textContent = paused ? 'Wake up' : 'Be still';
+        }
+        if (paused) {
+          pauseStartedAt = now;
+          resumeStartedAt = 0;
+          // Any bug currently attracted to the cursor: bail out of
+          // attracted mode immediately, otherwise once we clear the
+          // cursor coords below it would lerp toward (-9999, -9999).
+          // Anchor its wander target where its lead currently is so it
+          // has no new motion to add — only the pause ramp slows it.
+          trails.forEach((tr) => {
+            if (tr.mode === 'attracted') {
+              tr.mode = 'loop';
+              tr.releasedAt = 0;
+              const lead = tr.chain[0];
+              tr.wanderX = lead.x;
+              tr.wanderY = lead.y;
+            }
+          });
+          // Forget the cursor while paused so a mousemove during
+          // stillness can't sneak a re-attraction onto the queue.
+          mouseSeen = false;
+          mouseX = -9999;
+          mouseY = -9999;
+        } else {
+          resumeStartedAt = now;
+          pauseStartedAt = 0;
+          // Wake-up: reset each wander target to where the lead actually
+          // is so motion picks up from the settled position, not from a
+          // stale pre-pause target. With RESUME_FADE_MS ramping k back
+          // up, the bugs ease back into motion gently.
+          trails.forEach((tr) => {
+            const lead = tr.chain[0];
+            tr.wanderX = lead.x;
+            tr.wanderY = lead.y;
+          });
+        }
+      });
+    }
+
     // On resize, clamp loop centers so they stay visible + resize SVG/canvas.
     // Resizing the canvas bitmap clears it (acceptable: trails dissolve fast
     // anyway, so a momentary clear on resize isn't visually disruptive).
@@ -1458,7 +2076,8 @@
         // The wander tether (below) then pulls the wander target toward
         // the new home, which the lead lerps toward — so the visual is
         // a smooth migration to the new neighborhood, not a teleport.
-        if (tr.mode === 'loop' && now > tr.nextRelocateAt) {
+        // Skipped while paused (no new motion should be introduced).
+        if (!paused && tr.mode === 'loop' && now > tr.nextRelocateAt) {
           const newHome = pickCenter(140);
           tr.cx = newHome.cx;
           tr.cy = newHome.cy;
@@ -1481,8 +2100,10 @@
         // Then we step the target STEP px in that heading and apply a
         // soft tether back toward the home base if it has wandered too
         // far — keeps each lead roaming in its own neighborhood instead
-        // of all drifting offscreen.
-        if (tr.mode === 'loop') {
+        // of all drifting offscreen. Skipped while paused: the target
+        // freezes wherever it was, and the lead lerps toward that frozen
+        // point with a decaying k (see below) so motion decays naturally.
+        if (!paused && tr.mode === 'loop') {
           tr.wanderAngle +=
               Math.sin(now / tr.periodMs + tr.phaseX) * WANDER_SWIRL
             + (Math.random() - 0.5) * WANDER_JITTER;
@@ -1507,41 +2128,66 @@
         // Distance from lead to cursor
         const dx = mouseX - lead.x;
         const dy = mouseY - lead.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          
-        // State transitions (only the lead reacts to cursor; the tail just drags)
-        if (tr.mode === 'loop'
-            && mouseSeen
-            && dist < ATTRACT_RADIUS
-            && now > tr.cooldownUntil) {
-          tr.mode = 'attracted';
-          tr.attractedSince = now;
-        } else if (tr.mode === 'attracted') {
-          const elapsed = now - tr.attractedSince;
-          if (elapsed > ATTRACT_DURATION || dist > RELEASE_RADIUS) {
-            tr.mode = 'loop';
-            tr.cooldownUntil = now + COOLDOWN;
-            tr.releasedAt = now;
-            // Reset wander target to current dot position so it picks
-            // up its meander from where it actually is — no abrupt jump
-            // back toward an old, stale wander point.
-            tr.wanderX = lead.x;
-            tr.wanderY = lead.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        // State transitions (only the lead reacts to cursor; the tail just drags).
+        // Skipped while paused: stillness should not be interrupted by the cursor.
+        if (!paused) {
+          if (tr.mode === 'loop'
+              && mouseSeen
+              && dist < ATTRACT_RADIUS
+              && now > tr.cooldownUntil) {
+            tr.mode = 'attracted';
+            tr.attractedSince = now;
+          } else if (tr.mode === 'attracted') {
+            const elapsed = now - tr.attractedSince;
+            if (elapsed > ATTRACT_DURATION || dist > RELEASE_RADIUS) {
+              tr.mode = 'loop';
+              tr.cooldownUntil = now + COOLDOWN;
+              tr.releasedAt = now;
+              // Reset wander target to current dot position so it picks
+              // up its meander from where it actually is — no abrupt jump
+              // back toward an old, stale wander point.
+              tr.wanderX = lead.x;
+              tr.wanderY = lead.y;
+            }
           }
         }
 
         const targetX = tr.mode === 'attracted' ? mouseX : loopX;
         const targetY = tr.mode === 'attracted' ? mouseY : loopY;
 
-        // Lerp coefficient for the lead. In loop mode after a release, ramp
-        // from RELEASE_LERP_MIN up to NORMAL_LERP over RELEASE_RAMP ms with
-        // cubic ease-in — calm exit from the cursor.
+        // Lerp coefficient for the lead. Three regimes, checked in order:
+        //   1) Pause ramp (global): k decays NORMAL_LERP → 0 over
+        //      PAUSE_FADE_MS with an ease-out cubic. Because the wander
+        //      target is frozen, the lead lerps toward a fixed point
+        //      with shrinking k → smooth deceleration into stillness.
+        //   2) Resume ramp (global): k grows 0 → NORMAL_LERP over
+        //      RESUME_FADE_MS with an ease-in quadratic. Bugs wake up
+        //      gently rather than snapping into motion.
+        //   3) Per-trail cursor-release ramp: existing behavior — after
+        //      the cursor lets a bug go, ease k back up from
+        //      RELEASE_LERP_MIN over RELEASE_RAMP ms.
         let k = NORMAL_LERP;
-        if (tr.mode === 'loop' && tr.releasedAt > 0) {
+        if (paused) {
+          const pauseElapsed = now - pauseStartedAt;
+          const t = Math.min(1, pauseElapsed / PAUSE_FADE_MS);
+          // Ease-out cubic on the *decay*: fast deceleration up front,
+          // very gentle final approach to rest.
+          k = NORMAL_LERP * Math.pow(1 - t, 3);
+        } else if (resumeStartedAt > 0) {
+          const resumeElapsed = now - resumeStartedAt;
+          if (resumeElapsed >= RESUME_FADE_MS) {
+            resumeStartedAt = 0;
+          } else {
+            const t = resumeElapsed / RESUME_FADE_MS;
+            k = NORMAL_LERP * (t * t);
+          }
+        } else if (tr.mode === 'loop' && tr.releasedAt > 0) {
           const releaseElapsed = now - tr.releasedAt;
           if (releaseElapsed >= RELEASE_RAMP) {
             tr.releasedAt = 0;
-      } else {
+          } else {
             const p = releaseElapsed / RELEASE_RAMP;
             const eased = p * p * p;
             k = RELEASE_LERP_MIN + (NORMAL_LERP - RELEASE_LERP_MIN) * eased;
@@ -1595,6 +2241,80 @@
       requestAnimationFrame(tick);
     }
     requestAnimationFrame(tick);
+  })();
+
+  // === Active-section highlight in the .section-nav ===
+  // Watches the three section landmarks (#works, #technologies,
+  // #publications) inside the right-column scroll container and marks
+  // the corresponding .section-nav link (in the static left panel) as
+  // `.is-active`. Threshold logic picks whichever section currently
+  // occupies the most of the visible area, so the highlight flips
+  // cleanly as the user scrolls between sections rather than wobbling
+  // at boundaries.
+  (function () {
+    const navLinks = document.querySelectorAll('.section-nav a[href^="#"]');
+    if (!navLinks.length || typeof IntersectionObserver === 'undefined') return;
+
+    // Map href hashes (#works) → <a> elements so we can flip classes
+    // by section id without re-querying on every callback.
+    const linkByHash = new Map();
+    navLinks.forEach((a) => {
+      linkByHash.set(a.getAttribute('href'), a);
+    });
+
+    const sections = [
+      document.getElementById('works'),
+      document.getElementById('technologies'),
+      document.getElementById('publications'),
+    ].filter(Boolean);
+    if (!sections.length) return;
+
+    // Track each section's current intersection ratio; on every callback
+    // recompute which section is the "most visible" and update the
+    // active link. This is more robust than rootMargin-based "first
+    // visible" because sticky nav and tall sections can otherwise leave
+    // no section above any single threshold.
+    const ratios = new Map();
+    sections.forEach((s) => ratios.set(s.id, 0));
+
+    function applyActive() {
+      let bestId = null;
+      let bestRatio = 0;
+      ratios.forEach((r, id) => {
+        if (r > bestRatio) {
+          bestRatio = r;
+          bestId = id;
+        }
+      });
+      navLinks.forEach((a) => a.classList.remove('is-active'));
+      if (bestId && bestRatio > 0.01) {
+        const target = linkByHash.get('#' + bestId);
+        if (target) target.classList.add('is-active');
+      }
+    }
+
+    // Use the right-column scroll container as the IO root so visibility
+    // is computed against the actual scroll surface, not the viewport.
+    const scrollRoot = document.querySelector('.layout-right');
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => ratios.set(e.target.id, e.intersectionRatio));
+        applyActive();
+      },
+      {
+        root: scrollRoot && scrollRoot.scrollHeight > scrollRoot.clientHeight
+          ? scrollRoot
+          : null, // fall back to viewport on mobile where right column doesn't scroll internally
+        // Bottom -55% means a section needs to be in the upper ~45% of
+        // the scroll area to count as "the section being read" — keeps
+        // the highlight crisp and avoids wobble at section boundaries.
+        // Top is 0 now since there's no sticky nav inside this scroll
+        // container anymore (nav moved to left panel).
+        rootMargin: '0px 0px -55% 0px',
+        threshold: [0, 0.05, 0.15, 0.3, 0.5, 0.75, 1],
+      }
+    );
+    sections.forEach((s) => io.observe(s));
   })();
   </script>
 </body>
