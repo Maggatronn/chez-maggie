@@ -363,14 +363,16 @@
     }
     .bio p { margin-bottom: 10px; }
     .bio p:last-child { margin-bottom: 0; }
-    .bio a {
+    .bio a,
+    .hero-descriptor a {
       color: var(--ink);
       text-decoration: none;
       border-bottom: 1.5px solid var(--accent);
       padding-bottom: 1px;
       transition: color 0.15s, border-color 0.15s;
     }
-    .bio a:hover {
+    .bio a:hover,
+    .hero-descriptor a:hover {
       color: var(--accent-deep);
       border-color: var(--accent-deep);
     }
@@ -459,14 +461,14 @@
       opacity: 0.5;
       transition: opacity 0.2s ease;
     }
+    /* Shield logos lose their meaning as a flat silhouette — keep the
+       interior detail, just drained of color. */
+    .affiliations-row img.logo-tone {
+      filter: grayscale(1) contrast(1.2);
+      opacity: 0.6;
+    }
     .affiliations-row img:hover {
       opacity: 0.78;
-    }
-    /* NYC logo deliberately larger — the most directly relevant
-       institutional credit for civic-tech / city-government audiences. */
-    .affiliations-row img.logo-lg {
-      height: 80px;
-      max-width: 240px;
     }
     
     /* Contact strip — small monospace links at the bottom of the sticky column.
@@ -1309,7 +1311,7 @@
       </div>
       
       <p class="hero-descriptor">
-        Civic technologist, organizer, and product lead. PhD candidate at MIT Media Lab, advised by <a href="https://www.media.mit.edu/people/dkroy/overview/" target="_blank">Deb Roy</a>.
+        Organizer, researcher, and technologist. Member of <a href="https://www.convoca.org" target="_blank">Convoca</a>. PhD from the MIT Media Lab's <a href="https://www.ccc.mit.edu/" target="_blank">Center for Constructive Communication</a>, advised by <a href="https://www.media.mit.edu/people/dkroy/overview/" target="_blank">Deb Roy</a>.
       </p>
 
       <div class="now-block">
@@ -1324,7 +1326,7 @@
           Most civic technology is built for transactional engagement — broadcast, extract, summarize, move on. I build for sustained relationship: systems that make the relational infrastructure of civic life legible, so engagement compounds into capacity and power rather than dissipating after each interaction.
         </p>
         <p>
-          Microsoft Sociotechnical Systems PhD Fellow. Fellow in Mozilla's Democracy × AI cohort. <a href="https://metagov.org/" target="_blank">Metagov</a> 2025 Interoperability grant. MIT Prize for Open Data, Honorable Mention. Affiliated with Harvard's Practicing Democracy Project (with <a href="https://www.linkedin.com/in/marshall-ganz-129a5617/" target="_blank">Marshall Ganz</a>) and MIT's <a href="https://dataplusfeminism.mit.edu/" target="_blank">Data + Feminism Lab</a>.
+          Microsoft Sociotechnical Systems PhD Fellow. Fellow in Mozilla's <a href="https://www.mozillafoundation.org/en/what-we-do/grantmaking/incubator/democracy-ai-cohort/" target="_blank">Democracy × AI</a> cohort. <a href="https://metagov.org/" target="_blank">Metagov</a> 2025 Interoperability grant. MIT Prize for Open Data, Honorable Mention. Affiliated with Harvard's Practicing Democracy Project (with <a href="https://www.linkedin.com/in/marshall-ganz-129a5617/" target="_blank">Marshall Ganz</a>) and MIT's <a href="https://dataplusfeminism.mit.edu/" target="_blank">Data + Feminism Lab</a>.
         </p>
       </div>
 
@@ -1339,8 +1341,10 @@
       <div class="affiliations">
         <p class="kicker">Selected Affiliations</p>
         <div class="affiliations-row">
-          <img class="logo-lg" src="nycplanning.png" alt="NYC Department of City Planning" />
+          <img src="media-lab.png" alt="MIT Media Lab" />
+          <img class="logo-tone" src="harvard.svg" alt="Harvard University" />
           <img src="metagov.png" alt="Metagov" />
+          <img src="mozilla.svg" alt="Mozilla Foundation" />
         </div>
       </div>
       
